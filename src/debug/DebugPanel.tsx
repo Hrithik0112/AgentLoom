@@ -40,11 +40,11 @@ function Diff({ step }: { step: StepEvent }) {
         <div key={k} className="space-y-1">
           <div className="font-mono text-micro text-text-dim">{k}</div>
           {k in step.stateBefore && (
-            <div className="whitespace-pre-wrap break-words rounded-md border-l-2 border-halt/60 bg-halt/10 px-2.5 py-1.5 font-mono text-meta text-rose-200">
+            <div className="whitespace-pre-wrap break-words rounded-md border-l-2 border-halt/60 bg-halt/10 px-2.5 py-1.5 font-mono text-meta text-diff-del">
               {show(step.stateBefore[k])}
             </div>
           )}
-          <div className="whitespace-pre-wrap break-words rounded-md border-l-2 border-live/60 bg-live/10 px-2.5 py-1.5 font-mono text-meta text-emerald-200">
+          <div className="whitespace-pre-wrap break-words rounded-md border-l-2 border-live/60 bg-live/10 px-2.5 py-1.5 font-mono text-meta text-diff-add">
             {show(step.stateAfter[k])}
           </div>
         </div>
@@ -75,7 +75,7 @@ function Inspector({ step }: { step: StepEvent }) {
             onClick={() => setTab(id)}
             className={`rounded-md px-2.5 py-1 text-meta transition-colors ${
               tab === id
-                ? "bg-ink-600 text-text"
+                ? "bg-elevated text-text"
                 : "text-text-dim hover:text-text"
             }`}
           >
@@ -88,7 +88,7 @@ function Inspector({ step }: { step: StepEvent }) {
       </div>
 
       {step.meta?.error && (
-        <div className="rounded-md border border-halt/40 bg-halt/10 px-2.5 py-2 font-mono text-meta text-rose-200">
+        <div className="rounded-md border border-halt/40 bg-halt/10 px-2.5 py-2 font-mono text-meta text-diff-del">
           {step.meta.error}
         </div>
       )}
@@ -96,7 +96,7 @@ function Inspector({ step }: { step: StepEvent }) {
       {tab === "changed" && <Diff step={step} />}
 
       {tab === "state" && (
-        <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-md bg-ink-900 p-3 font-mono text-meta text-text-dim">
+        <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-md bg-surface p-3 font-mono text-meta text-text-dim">
           {JSON.stringify(step.stateAfter, null, 2)}
         </pre>
       )}
@@ -107,7 +107,7 @@ function Inspector({ step }: { step: StepEvent }) {
             {step.meta.system && (
               <div className="space-y-1">
                 <div className="text-meta text-text-faint">System</div>
-                <pre className="whitespace-pre-wrap break-words rounded-md bg-ink-900 p-3 font-mono text-meta text-text-dim">
+                <pre className="whitespace-pre-wrap break-words rounded-md bg-surface p-3 font-mono text-meta text-text-dim">
                   {step.meta.system}
                 </pre>
               </div>
@@ -119,13 +119,13 @@ function Inspector({ step }: { step: StepEvent }) {
                   {step.meta.model}
                 </span>
               </div>
-              <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words rounded-md bg-ink-900 p-3 font-mono text-meta text-sky-200">
+              <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words rounded-md bg-surface p-3 font-mono text-meta text-pick">
                 {step.meta.prompt}
               </pre>
             </div>
             <div className="space-y-1">
               <div className="text-meta text-text-faint">Came back</div>
-              <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words rounded-md bg-ink-900 p-3 font-mono text-meta text-violet-200">
+              <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words rounded-md bg-surface p-3 font-mono text-meta text-model">
                 {step.meta.response}
               </pre>
             </div>
@@ -228,7 +228,7 @@ export function DebugPanel() {
               status === "error" || status === "halted"
                 ? "text-halt"
                 : running
-                  ? "text-amber-400"
+                  ? "text-warn"
                   : status === "done"
                     ? "text-live"
                     : "text-text-dim"
@@ -247,14 +247,14 @@ export function DebugPanel() {
         </div>
 
         {error && (
-          <div className="rounded-md border border-halt/40 bg-halt/10 px-2.5 py-2 font-mono text-meta text-rose-200">
+          <div className="rounded-md border border-halt/40 bg-halt/10 px-2.5 py-2 font-mono text-meta text-diff-del">
             {error}
           </div>
         )}
 
         {status === "awaiting-approval" && (
           <div className="space-y-2.5 rounded-lg border border-halt/40 bg-halt/10 p-3">
-            <p className="text-ui text-rose-100">
+            <p className="text-ui text-text">
               {selected?.meta?.response ?? "This run is waiting on you."}
             </p>
             <div className="flex gap-1.5">
@@ -296,8 +296,8 @@ export function DebugPanel() {
                 <button
                   key={s.step}
                   onClick={() => inspect(s.step)}
-                  className={`flex w-full items-center gap-2.5 px-4 py-2 text-left transition-colors hover:bg-ink-700 ${
-                    currentStep === s.step ? "bg-ink-600" : ""
+                  className={`flex w-full items-center gap-2.5 px-4 py-2 text-left transition-colors hover:bg-raised ${
+                    currentStep === s.step ? "bg-elevated" : ""
                   }`}
                 >
                   <span className="tnum w-5 shrink-0 text-right font-mono text-micro text-text-faint">

@@ -57,18 +57,18 @@ export function Canvas() {
       fitView
       fitViewOptions={{ padding: 0.16, minZoom: 0.7, maxZoom: 1 }}
       minZoom={0.2}
-      className="bg-ink-900"
+      className="bg-surface"
     >
-      <Background color="#1b2230" gap={24} size={1.5} />
+      <Background color="var(--color-line)" gap={24} size={1.5} />
       <Controls
         showInteractive={false}
-        className="!rounded-lg !border !border-line !bg-ink-800 !shadow-none [&>button:hover]:!bg-ink-600 [&>button]:!border-0 [&>button]:!border-b [&>button]:!border-line [&>button]:!bg-ink-800 [&>button]:!fill-text-dim"
+        className="!rounded-lg !border !border-line !bg-panel !shadow-none [&>button:hover]:!bg-elevated [&>button]:!border-0 [&>button]:!border-b [&>button]:!border-line [&>button]:!bg-panel [&>button]:!fill-text-dim"
       />
       <MiniMap
         pannable
         zoomable
-        className="!rounded-lg !border !border-line !bg-ink-800"
-        maskColor="rgba(11,14,20,0.78)"
+        className="!rounded-lg !border !border-line !bg-panel"
+        maskColor="color-mix(in oklab, var(--color-surface) 78%, transparent)"
         nodeColor={(n) =>
           TYPE_COLOR[(n.data as { type: string }).type] ?? "#94a3b8"
         }

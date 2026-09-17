@@ -1,13 +1,15 @@
+import { Monitor, Moon, Sun } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTheme } from "./lib/theme.ts";
 
 export const control =
-  "w-full rounded-md border border-line bg-ink-900 px-2.5 py-1.5 text-ui text-text placeholder:text-text-faint outline-none transition-colors focus:border-pick";
+  "w-full rounded-md border border-line bg-surface px-2.5 py-1.5 text-ui text-text placeholder:text-text-faint outline-none transition-colors focus:border-pick";
 
 export const button =
-  "rounded-md border border-line bg-ink-700 px-3 py-1.5 text-meta text-text transition-colors hover:border-line-bright hover:bg-ink-600 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-line disabled:hover:bg-ink-700";
+  "rounded-md border border-line bg-raised px-3 py-1.5 text-meta text-text transition-colors hover:border-line-strong hover:bg-elevated disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-line disabled:hover:bg-raised";
 
 export const quietButton =
-  "rounded-md px-2.5 py-1.5 text-meta text-text-dim transition-colors hover:bg-ink-700 hover:text-text";
+  "rounded-md px-2.5 py-1.5 text-meta text-text-dim transition-colors hover:bg-raised hover:text-text";
 
 export function Field({
   label,
@@ -138,6 +140,42 @@ export function DragHandle({
       className="group absolute inset-y-0 left-0 z-20 w-2.5 -translate-x-1/2 cursor-col-resize touch-none"
     >
       <div className="mx-auto h-full w-px bg-line transition-colors group-hover:w-0.5 group-hover:bg-pick group-focus-visible:w-0.5 group-focus-visible:bg-pick" />
+    </div>
+  );
+}
+
+/** Three states, not two: pinned light, pinned dark, or whatever the machine says. */
+export function ThemeToggle() {
+  const [theme, set] = useTheme();
+  const options = [
+    ["system", Monitor, "Match the system"],
+    ["light", Sun, "Light"],
+    ["dark", Moon, "Dark"],
+  ] as const;
+
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Color theme"
+      className="flex gap-0.5 rounded-lg border border-line bg-surface p-0.5"
+    >
+      {options.map(([value, Icon, label]) => (
+        <button
+          key={value}
+          role="radio"
+          aria-checked={theme === value}
+          aria-label={label}
+          title={label}
+          onClick={() => set(value)}
+          className={`rounded-[5px] p-1.5 transition-colors ${
+            theme === value
+              ? "bg-elevated text-text"
+              : "text-text-faint hover:text-text"
+          }`}
+        >
+          <Icon size={14} aria-hidden />
+        </button>
+      ))}
     </div>
   );
 }

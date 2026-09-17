@@ -236,7 +236,7 @@ export function AnalyzePanel() {
           </Field>
 
           {err && (
-            <div className="rounded-md border border-halt/40 bg-halt/10 px-3 py-2 text-meta text-rose-200">
+            <div className="rounded-md border border-halt/40 bg-halt/10 px-3 py-2 text-meta text-halt">
               {err}
             </div>
           )}

@@ -2,7 +2,7 @@
 @import '@xyflow/react/dist/style.css';
 
 .react-flow__edge-path {
-  stroke: var(--color-line-bright);
+  stroke: var(--color-line-strong);
   stroke-width: 1.5;
 }
 .react-flow__edge.traversed .react-flow__edge-path {
@@ -18,13 +18,13 @@
   fill: var(--color-live);
 }
 .react-flow__edge-textbg {
-  fill: var(--color-ink-900);
+  fill: var(--color-surface);
 }
 .react-flow__handle {
   width: 7px;
   height: 7px;
-  background: var(--color-ink-600);
-  border: 1px solid var(--color-line-bright);
+  background: var(--color-elevated);
+  border: 1px solid var(--color-line-strong);
 }
 .react-flow__handle:hover {
   background: var(--color-pick);

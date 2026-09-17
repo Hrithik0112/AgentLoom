@@ -16,13 +16,13 @@ import { useStore } from "../store.ts";
 
 /** Node type is the one thing on a card that is color-coded, so the hues stay distinct. */
 export const TYPE_COLOR: Record<string, string> = {
-  input: "#38bdf8",
-  llm: "#a78bfa",
-  tool: "#fbbf24",
-  condition: "#4ade80",
-  loop: "#22d3ee",
-  approval: "#fb7185",
-  output: "#94a3b8",
+  input: "var(--c-type-input)",
+  llm: "var(--c-type-llm)",
+  tool: "var(--c-type-tool)",
+  condition: "var(--c-type-condition)",
+  loop: "var(--c-type-loop)",
+  approval: "var(--c-type-approval)",
+  output: "var(--c-type-output)",
 };
 
 /** A dot only says which color. The glyph says what the node actually does. */
@@ -90,13 +90,13 @@ export function LoomNodeView({ id, data, selected }: NodeProps<LoomNode>) {
   return (
     <div
       className={[
-        "w-60 rounded-[10px] border bg-ink-700 transition-colors",
+        "w-60 rounded-[10px] border bg-raised transition-colors",
         live
           ? "border-live shadow-[0_0_0_3px_rgba(74,222,128,0.16)]"
           : selected
             ? "border-pick"
             : visited
-              ? "border-line-bright"
+              ? "border-line-strong"
               : "border-line",
       ].join(" ")}
     >
@@ -123,7 +123,7 @@ export function LoomNodeView({ id, data, selected }: NodeProps<LoomNode>) {
             "h-3.5 w-3.5 shrink-0 rounded-full border transition-colors",
             armed
               ? "border-halt bg-halt"
-              : "border-line-bright hover:border-halt",
+              : "border-line-strong hover:border-halt",
           ].join(" ")}
         />
       </div>

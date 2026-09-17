@@ -282,10 +282,10 @@ export function ConfigPanel() {
         </Field>
       )}
 
-      <div className="space-y-2.5 rounded-lg border border-line bg-ink-900 p-3">
+      <div className="space-y-2.5 rounded-lg border border-line bg-surface p-3">
         <div className="flex gap-3">
           <span className="w-12 shrink-0 text-meta text-text-faint">Reads</span>
-          <span className="font-mono text-meta text-sky-300">
+          <span className="font-mono text-meta text-pick">
             {readsOf(data).join("  ") || "nothing"}
           </span>
         </div>
