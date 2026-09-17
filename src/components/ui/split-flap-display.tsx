@@ -58,7 +58,9 @@ function FlapCell({
 }) {
   const [displayChar, setDisplayChar] = useState(" ");
   const [isFlipping, setIsFlipping] = useState(false);
-  const [flipPhase, setFlipPhase] = useState<"idle" | "top-down" | "bottom-up">("idle");
+  const [flipPhase, setFlipPhase] = useState<"idle" | "top-down" | "bottom-up">(
+    "idle",
+  );
   const prevCharRef = useRef(" ");
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -117,10 +119,7 @@ function FlapCell({
 
   return (
     <div
-      className={cn(
-        "relative select-none font-mono font-bold",
-        s.cell
-      )}
+      className={cn("relative select-none font-mono font-bold", s.cell)}
       style={{ perspective: "400px" }}
     >
       {/* ── Static top half ──────────────── */}
@@ -133,7 +132,9 @@ function FlapCell({
       >
         <span
           className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-[48%] text-[#e8e6e3] drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]"
-          style={{ fontFamily: "'SF Mono', 'Fira Code', 'Courier New', monospace" }}
+          style={{
+            fontFamily: "'SF Mono', 'Fira Code', 'Courier New', monospace",
+          }}
         >
           {displayChar}
         </span>
@@ -148,7 +149,9 @@ function FlapCell({
       >
         <span
           className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-[48%] text-[#d4d2cf] drop-shadow-[0_-1px_1px_rgba(0,0,0,0.6)]"
-          style={{ fontFamily: "'SF Mono', 'Fira Code', 'Courier New', monospace" }}
+          style={{
+            fontFamily: "'SF Mono', 'Fira Code', 'Courier New', monospace",
+          }}
         >
           {displayChar}
         </span>
@@ -166,7 +169,9 @@ function FlapCell({
         >
           <span
             className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-[48%] text-[#e8e6e3]"
-            style={{ fontFamily: "'SF Mono', 'Fira Code', 'Courier New', monospace" }}
+            style={{
+              fontFamily: "'SF Mono', 'Fira Code', 'Courier New', monospace",
+            }}
           >
             {prevCharRef.current}
           </span>
@@ -185,7 +190,9 @@ function FlapCell({
         >
           <span
             className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-[48%] text-[#d4d2cf]"
-            style={{ fontFamily: "'SF Mono', 'Fira Code', 'Courier New', monospace" }}
+            style={{
+              fontFamily: "'SF Mono', 'Fira Code', 'Courier New', monospace",
+            }}
           >
             {displayChar}
           </span>
@@ -197,7 +204,8 @@ function FlapCell({
         className="absolute inset-x-0 top-1/2 -translate-y-1/2 z-20 pointer-events-none"
         style={{
           height: "2px",
-          background: "linear-gradient(90deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.9) 100%)",
+          background:
+            "linear-gradient(90deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.9) 100%)",
           boxShadow: "0 1px 0 rgba(255,255,255,0.04)",
         }}
       />
@@ -206,7 +214,8 @@ function FlapCell({
       <div
         className="absolute inset-0 rounded-[3px] z-20 pointer-events-none"
         style={{
-          boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 -1px 2px rgba(0,0,0,0.3)",
+          boxShadow:
+            "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 -1px 2px rgba(0,0,0,0.3)",
         }}
       />
     </div>
@@ -225,7 +234,10 @@ function IndicatorStrip({
   const heightMap = { sm: "h-[38px]", md: "h-[54px]", lg: "h-[72px]" };
   return (
     <div
-      className={cn("w-[6px] rounded-[2px] flex-shrink-0 self-stretch", heightMap[size])}
+      className={cn(
+        "w-[6px] rounded-[2px] flex-shrink-0 self-stretch",
+        heightMap[size],
+      )}
       style={{
         background: `linear-gradient(180deg, ${color} 0%, ${color}99 40%, ${color}66 60%, ${color}99 100%)`,
         boxShadow: `0 0 8px ${color}44, inset 0 1px 2px rgba(255,255,255,0.2)`,
@@ -323,12 +335,10 @@ export function SplitFlapDisplay({
   if (text && !rows) {
     return (
       <div
-        className={cn(
-          "inline-flex flex-col gap-2 p-4 rounded-2xl",
-          className
-        )}
+        className={cn("inline-flex flex-col gap-2 p-4 rounded-2xl", className)}
         style={{
-          background: "linear-gradient(145deg, #0c0c0c 0%, #080808 50%, #0a0a0a 100%)",
+          background:
+            "linear-gradient(145deg, #0c0c0c 0%, #080808 50%, #0a0a0a 100%)",
           border: "1px solid rgba(255,255,255,0.06)",
           boxShadow:
             "0 20px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.03), inset 0 1px 0 rgba(255,255,255,0.04)",
@@ -350,12 +360,10 @@ export function SplitFlapDisplay({
   // Multi-row board mode
   return (
     <div
-      className={cn(
-        "inline-flex flex-col gap-2 p-5 rounded-2xl",
-        className
-      )}
+      className={cn("inline-flex flex-col gap-2 p-5 rounded-2xl", className)}
       style={{
-        background: "linear-gradient(145deg, #0c0c0c 0%, #080808 50%, #0a0a0a 100%)",
+        background:
+          "linear-gradient(145deg, #0c0c0c 0%, #080808 50%, #0a0a0a 100%)",
         border: "1px solid rgba(255,255,255,0.06)",
         boxShadow:
           "0 25px 80px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.03), inset 0 1px 0 rgba(255,255,255,0.04)",

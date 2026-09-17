@@ -1,4 +1,11 @@
 import { SplitFlapDisplay } from "@/components/ui/split-flap-display";
+import {
+  Blocks,
+  Bug,
+  ChartNoAxesColumn,
+  Code2,
+  type LucideIcon,
+} from "lucide-react";
 import { LiveRun } from "./LiveRun.tsx";
 
 const REPO = "https://github.com/Hrithik0112/AgentLoom";
@@ -30,17 +37,20 @@ const STEPS = [
   { n: 4, label: "holding reply", note: "" },
 ];
 
-const MODES = [
+const MODES: { name: string; icon: LucideIcon; body: string }[] = [
   {
     name: "Build",
+    icon: Blocks,
     body: "Seven node types, wired on a canvas. Every card shows what it reads, what it writes, and what it has actually cost you so far.",
   },
   {
     name: "Debug",
+    icon: Bug,
     body: "Breakpoints, a state diff per step, and the fully rendered prompt for every model call. Post interpolation, exactly what went over the wire.",
   },
   {
     name: "Analyze",
+    icon: ChartNoAxesColumn,
     body: "Where requests actually go across many runs, which nodes burn the time and money, and a scorecard comparing two versions on one test suite.",
   },
 ];
@@ -81,8 +91,9 @@ export default function Landing() {
         <nav className="ml-auto flex items-center gap-1">
           <a
             href={REPO}
-            className="rounded-md px-3 py-1.5 text-meta text-text-dim transition-colors hover:bg-ink-700 hover:text-text"
+            className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-meta text-text-dim transition-colors hover:bg-ink-700 hover:text-text"
           >
+            <Code2 size={14} aria-hidden />
             Source
           </a>
           <a
@@ -243,6 +254,7 @@ export default function Landing() {
           <div className="mt-8 grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
             {MODES.map((m) => (
               <div key={m.name} className="bg-ink-800 p-5">
+                <m.icon size={18} aria-hidden className="mb-3 text-text-dim" />
                 <h3 className="m-0 text-title font-medium text-text">
                   {m.name}
                 </h3>

@@ -1,22 +1,22 @@
-import { sankey, sankeyLinkHorizontal } from 'd3-sankey'
-import { useMemo } from 'react'
-import type { RunRecord } from '../lib/persist.ts'
-import { pathCounts } from '../lib/stats.ts'
+import { sankey, sankeyLinkHorizontal } from "d3-sankey";
+import { useMemo } from "react";
+import type { RunRecord } from "../lib/persist.ts";
+import { pathCounts } from "../lib/stats.ts";
 
-type N = { id: string; x0?: number; x1?: number; y0?: number; y1?: number }
-type L = { source: N; target: N; width?: number; value: number }
+type N = { id: string; x0?: number; x1?: number; y0?: number; y1?: number };
+type L = { source: N; target: N; width?: number; value: number };
 
-const WIDTH = 900
-const HEIGHT = 200
+const WIDTH = 900;
+const HEIGHT = 200;
 // Room on the right so the last node's label is not clipped by the viewBox.
-const LABEL_GUTTER = 72
+const LABEL_GUTTER = 72;
 
 export function Sankey({ runs }: { runs: RunRecord[] }) {
   const layout = useMemo(() => {
-    const links = pathCounts(runs).filter((l) => l.source !== l.target)
-    if (!links.length) return null
-    const ids = [...new Set(links.flatMap((l) => [l.source, l.target]))]
-    const index = new Map(ids.map((id, i) => [id, i]))
+    const links = pathCounts(runs).filter((l) => l.source !== l.target);
+    if (!links.length) return null;
+    const ids = [...new Set(links.flatMap((l) => [l.source, l.target]))];
+    const index = new Map(ids.map((id, i) => [id, i]));
     try {
       return sankey<N, L>()
         .nodeWidth(14)
@@ -26,44 +26,58 @@ export function Sankey({ runs }: { runs: RunRecord[] }) {
           [WIDTH - LABEL_GUTTER, HEIGHT - 4],
         ])({
         nodes: ids.map((id) => ({ id })),
-        links: links.map((l) => ({ ...l, source: index.get(l.source)!, target: index.get(l.target)! })),
-      } as never)
+        links: links.map((l) => ({
+          ...l,
+          source: index.get(l.source)!,
+          target: index.get(l.target)!,
+        })),
+      } as never);
     } catch {
       // ponytail: d3-sankey rejects cycles, and a loop node is a legitimate cycle. Fall back
       // to the ranked table below rather than hiding the data. Layered layout if asked.
-      return null
+      return null;
     }
-  }, [runs])
+  }, [runs]);
 
-  const ranked = useMemo(() => pathCounts(runs).sort((a, b) => b.value - a.value), [runs])
+  const ranked = useMemo(
+    () => pathCounts(runs).sort((a, b) => b.value - a.value),
+    [runs],
+  );
 
-  if (!ranked.length) return null
+  if (!ranked.length) return null;
 
   if (!layout) {
     return (
       <div className="space-y-3">
         <p className="text-meta text-text-dim">
-          This workflow loops, so it cannot be laid out left to right. Here is the same data as counts.
+          This workflow loops, so it cannot be laid out left to right. Here is
+          the same data as counts.
         </p>
         <table className="w-full max-w-lg">
           {/* A loop's own back edge is a real path, so it belongs in the count even when it
               breaks the diagram. */}
           <tbody>
             {ranked.map((l) => (
-              <tr key={`${l.source}-${l.target}`} className="border-b border-line/60">
+              <tr
+                key={`${l.source}-${l.target}`}
+                className="border-b border-line/60"
+              >
                 <td className="py-1.5 font-mono text-meta text-text">
-                  {l.source} <span className="text-text-faint">to</span> {l.target}
+                  {l.source} <span className="text-text-faint">to</span>{" "}
+                  {l.target}
                 </td>
-                <td className="tnum w-20 py-1.5 text-right font-mono text-meta text-text-dim">{l.value}</td>
+                <td className="tnum w-20 py-1.5 text-right font-mono text-meta text-text-dim">
+                  {l.value}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    )
+    );
   }
 
-  const max = Math.max(...layout.links.map((l) => l.value))
+  const max = Math.max(...layout.links.map((l) => l.value));
 
   return (
     // Capped so the diagram keeps its aspect ratio instead of stretching to the panel width.
@@ -109,5 +123,5 @@ export function Sankey({ runs }: { runs: RunRecord[] }) {
         </g>
       ))}
     </svg>
-  )
+  );
 }
