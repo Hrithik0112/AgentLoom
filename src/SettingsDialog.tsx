@@ -1,4 +1,12 @@
-import { Monitor, Moon, RotateCcw, Sun, Trash2, X } from "lucide-react";
+import {
+  Compass,
+  Monitor,
+  Moon,
+  RotateCcw,
+  Sun,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { MODELS } from "../packages/engine/index.ts";
 import { clearRuns } from "./lib/persist.ts";
@@ -267,6 +275,19 @@ export function SettingsDialog({
               }
             />
           </Field>
+        </Group>
+
+        <Group
+          title="Help"
+          note="A guided pass through build, debug and analyze. It runs the workflow as it goes."
+        >
+          <button
+            className={`${button} inline-flex items-center gap-1.5`}
+            onClick={() => window.dispatchEvent(new Event("agentloom:tour"))}
+          >
+            <Compass size={13} aria-hidden />
+            Replay the walkthrough
+          </button>
         </Group>
 
         <Group

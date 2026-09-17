@@ -201,7 +201,7 @@ export function DebugPanel() {
           />
         </Field>
 
-        <div className="flex flex-wrap gap-1.5">
+        <div data-tour="transport" className="flex flex-wrap gap-1.5">
           {(
             [
               [Play, "Run", start, running],
