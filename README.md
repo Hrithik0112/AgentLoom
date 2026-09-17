@@ -5,7 +5,7 @@ understanding, debugging, and measuring agent pipelines.
 
 ```bash
 npm install
-npm run dev     # http://localhost:5173
+npm run dev     # landing page at /, the debugger at /app.html
 npm run check   # engine self-check, no browser, no API key
 ```
 
@@ -34,7 +34,13 @@ the same test suite.
 ```
 packages/engine/   pure TypeScript. No React, no DOM. Runs under plain node.
 src/               Vite + React + React Flow. Imports the engine, never reimplements it.
+src/landing/       the landing page, built as its own entry so visitors do not
+                   download React Flow just to read the pitch.
 ```
+
+The landing page hero is not a screenshot or a video. It imports `packages/engine`
+and runs a real workflow in the visitor's browser, one step at a time, which is
+affordable only because the engine has no dependencies and never touches the DOM.
 
 The engine is an async generator:
 

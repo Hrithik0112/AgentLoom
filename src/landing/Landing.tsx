@@ -1,0 +1,304 @@
+import { SplitFlapDisplay } from "@/components/ui/split-flap-display";
+import { LiveRun } from "./LiveRun.tsx";
+
+const REPO = "https://github.com/Hrithik0112/AgentLoom";
+
+/** Real log lines, in the shape and volume you actually get back from a framework. */
+const LOG_WALL = [
+  '[14:23:01.204] node=classify_intent state={"ticket":"I was charged twi...',
+  "[14:23:01.208] llm.request model=claude-opus-5 tokens_in=284",
+  "[14:23:02.611] llm.response tokens_out=3 stop_reason=end_turn",
+  '[14:23:02.613] node=classify_intent result={"intent":"billing","conf":0.73}',
+  "[14:23:02.615] node=route_by_intent evaluating 3 conditions",
+  '[14:23:02.615] cond[0] intent=="billing" && conf>0.85 -> false',
+  '[14:23:02.616] cond[1] intent=="technical" -> false',
+  "[14:23:02.616] cond[2] fallback -> true",
+  "[14:23:02.617] edge route_by_intent --else--> escalate_to_human",
+  '[14:23:02.619] node=escalate_to_human state={"ticket":"I was charged t...',
+  "[14:23:02.620] queue.push channel=support-tier2 priority=normal",
+  '[14:23:02.622] node=escalate_to_human result={"queued":true}',
+  "[14:23:02.624] edge escalate_to_human --> compose_holding_reply",
+  '[14:23:02.625] node=compose_holding_reply state={"ticket":"I was charg...',
+  "[14:23:02.628] llm.request model=claude-opus-5 tokens_in=412",
+];
+
+const STEPS = [
+  { n: 0, label: "ticket in", note: "" },
+  { n: 1, label: "classify intent", note: "billing, 0.73" },
+  { n: 2, label: "route", note: "else", flagged: true },
+  { n: 3, label: "human gate", note: "queued" },
+  { n: 4, label: "holding reply", note: "" },
+];
+
+const MODES = [
+  {
+    name: "Build",
+    body: "Seven node types, wired on a canvas. Every card shows what it reads, what it writes, and what it has actually cost you so far.",
+  },
+  {
+    name: "Debug",
+    body: "Breakpoints, a state diff per step, and the fully rendered prompt for every model call. Post interpolation, exactly what went over the wire.",
+  },
+  {
+    name: "Analyze",
+    body: "Where requests actually go across many runs, which nodes burn the time and money, and a scorecard comparing two versions on one test suite.",
+  },
+];
+
+function Command({ children }: { children: string }) {
+  return (
+    <code className="block font-mono text-ui text-text">
+      <span className="select-none text-text-faint">$ </span>
+      {children}
+    </code>
+  );
+}
+
+export default function Landing() {
+  return (
+    <div className="min-h-full bg-ink-900">
+      <header className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-5">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 18 18"
+          aria-hidden
+          className="text-text"
+        >
+          <g
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            fill="none"
+          >
+            <path d="M3 2v14M9 2v14M15 2v14" opacity="0.45" />
+            <path d="M1.5 6.5h15M1.5 11.5h15" />
+          </g>
+        </svg>
+        <span className="text-title font-semibold tracking-tight text-text">
+          agentloom
+        </span>
+        <nav className="ml-auto flex items-center gap-1">
+          <a
+            href={REPO}
+            className="rounded-md px-3 py-1.5 text-meta text-text-dim transition-colors hover:bg-ink-700 hover:text-text"
+          >
+            Source
+          </a>
+          <a
+            href="/app.html"
+            className="rounded-md border border-line bg-ink-700 px-3 py-1.5 text-meta text-text transition-colors hover:border-line-bright hover:bg-ink-600"
+          >
+            Open the debugger
+          </a>
+        </nav>
+      </header>
+
+      <main className="mx-auto max-w-6xl px-6">
+        <section className="pt-16 pb-12">
+          <h1 className="m-0 max-w-3xl text-[clamp(2.1rem,5.2vw,3.4rem)] font-semibold leading-[1.08] tracking-[-0.025em] text-text">
+            Your agent answered wrong at step 12. Which of the other eleven
+            broke it?
+          </h1>
+          <p className="mt-6 max-w-[58ch] text-[1.0625rem] leading-relaxed text-text-dim">
+            AgentLoom is a debugger for AI agent workflows. Step through a run,
+            read the state at every node, change it mid flight, and replay from
+            that point without paying again for the steps in front of it.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <a
+              href="/app.html"
+              className="rounded-lg border border-live/40 bg-live/15 px-4 py-2 text-ui font-medium text-emerald-200 transition-colors hover:bg-live/25"
+            >
+              Open the debugger
+            </a>
+            <a
+              href={REPO}
+              className="rounded-lg border border-line bg-ink-700 px-4 py-2 text-ui text-text transition-colors hover:border-line-bright hover:bg-ink-600"
+            >
+              Read the source
+            </a>
+            <span className="text-meta text-text-faint">
+              No sign up. No API key to look around.
+            </span>
+          </div>
+
+          <div className="mt-12">
+            <LiveRun />
+          </div>
+        </section>
+
+        <section className="border-t border-line py-16">
+          <h2 className="m-0 max-w-2xl text-[clamp(1.5rem,3vw,2rem)] font-semibold leading-tight tracking-[-0.02em] text-text">
+            You have logs. You do not have a debugger.
+          </h2>
+          <p className="mt-4 max-w-[60ch] text-ui leading-relaxed text-text-dim">
+            Both panels below describe the same failing run. On the left is what
+            the framework gave you. On the right is the same execution as steps,
+            with the branch that went the wrong way marked.
+          </p>
+
+          <div className="mt-8 grid gap-4 lg:grid-cols-2">
+            <div className="relative overflow-hidden rounded-xl border border-line bg-ink-800">
+              <div className="border-b border-line px-4 py-2.5 text-meta text-text-dim">
+                agent.log
+              </div>
+              <div className="space-y-0.5 px-4 py-3">
+                {LOG_WALL.map((line) => (
+                  <p
+                    key={line}
+                    className="m-0 truncate font-mono text-micro text-text-faint"
+                  >
+                    {line}
+                  </p>
+                ))}
+              </div>
+              {/* The fade is the honest part: the wall does not end, you just stop reading. */}
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-ink-800 to-transparent" />
+            </div>
+
+            <div className="overflow-hidden rounded-xl border border-line bg-ink-800">
+              <div className="border-b border-line px-4 py-2.5 text-meta text-text-dim">
+                Same run, as steps
+              </div>
+              <ol className="m-0 list-none p-0">
+                {STEPS.map((s) => (
+                  <li
+                    key={s.n}
+                    className={`flex items-center gap-3 border-b border-line/50 px-4 py-2.5 last:border-b-0 ${
+                      s.flagged ? "bg-halt/10" : ""
+                    }`}
+                  >
+                    <span className="tnum w-4 text-right font-mono text-micro text-text-faint">
+                      {s.n}
+                    </span>
+                    <span
+                      className={`flex-1 text-ui ${s.flagged ? "text-rose-200" : "text-text"}`}
+                    >
+                      {s.label}
+                    </span>
+                    {s.note && (
+                      <span
+                        className={`font-mono text-micro ${s.flagged ? "text-halt" : "text-text-faint"}`}
+                      >
+                        {s.note}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ol>
+              <p className="m-0 border-t border-line px-4 py-3 text-meta text-text-dim">
+                Confidence came back at 0.73. The threshold was 0.85, so routing
+                fell through to the human queue.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-t border-line py-16">
+          <div className="grid items-start gap-10 lg:grid-cols-[1.1fr_auto]">
+            <div>
+              <h2 className="m-0 max-w-2xl text-[clamp(1.5rem,3vw,2rem)] font-semibold leading-tight tracking-[-0.02em] text-text">
+                Change the threshold at step 3. Do not re-pay for steps 1 and 2.
+              </h2>
+              <p className="mt-4 max-w-[60ch] text-ui leading-relaxed text-text-dim">
+                AgentLoom snapshots the full state before every step. Rewinding
+                means starting a fresh run from one of those snapshots, so the
+                steps in front of your change never execute a second time. Edit
+                the state by hand, resume, and watch the run take the other
+                branch.
+              </p>
+              <p className="mt-4 max-w-[60ch] text-ui leading-relaxed text-text-dim">
+                The same machinery gives you breakpoints and human approval
+                gates, because pausing is just the caller deciding not to ask
+                for the next step yet.
+              </p>
+            </div>
+
+            <div className="min-w-0 justify-self-stretch lg:justify-self-end">
+              {/* The board is a fixed 643px. Without its own scroller it drags the whole
+                  page sideways on a phone. */}
+              <div className="-mx-6 overflow-x-auto px-6 lg:mx-0 lg:px-0">
+                <SplitFlapDisplay
+                  size="sm"
+                  columns={20}
+                  accentColor="#4ade80"
+                  rows={[
+                    { label: "FULL RERUN", value: "$0.42" },
+                    { label: "REPLAY AT 3", value: "$0.06" },
+                  ]}
+                />
+              </div>
+              <p className="mt-3 max-w-[26ch] text-meta text-text-faint">
+                One twelve step run, changed at step three, on Claude Opus.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-t border-line py-16">
+          <h2 className="m-0 text-[clamp(1.5rem,3vw,2rem)] font-semibold leading-tight tracking-[-0.02em] text-text">
+            Three modes, one graph
+          </h2>
+          <div className="mt-8 grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
+            {MODES.map((m) => (
+              <div key={m.name} className="bg-ink-800 p-5">
+                <h3 className="m-0 text-title font-medium text-text">
+                  {m.name}
+                </h3>
+                <p className="mt-2 m-0 text-meta leading-relaxed text-text-dim">
+                  {m.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="border-t border-line py-16">
+          <div className="grid items-start gap-10 lg:grid-cols-2">
+            <div>
+              <h2 className="m-0 text-[clamp(1.5rem,3vw,2rem)] font-semibold leading-tight tracking-[-0.02em] text-text">
+                Run it locally
+              </h2>
+              <p className="mt-4 max-w-[52ch] text-ui leading-relaxed text-text-dim">
+                It is a static site. The workflow engine runs in your browser,
+                your API key stays in that browser, and nothing is sent anywhere
+                except to Anthropic.
+              </p>
+              <p className="mt-4 max-w-[52ch] text-ui leading-relaxed text-text-dim">
+                Leave the key out and runs execute against canned responses
+                instead, which is enough to walk every branch in the bundled
+                examples.
+              </p>
+            </div>
+            <div className="space-y-1.5 rounded-xl border border-line bg-ink-800 p-5">
+              <Command>git clone github.com/Hrithik0112/AgentLoom</Command>
+              <Command>npm install</Command>
+              <Command>npm run dev</Command>
+              <p className="mt-4 m-0 border-t border-line pt-4 text-meta text-text-faint">
+                <code className="font-mono text-text-dim">npm run check</code>{" "}
+                runs the engine's self checks with no browser and no key.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="mx-auto max-w-6xl px-6">
+        {/* Border on the inner element so it lines up with the section rules above it. */}
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line py-8 text-meta text-text-faint">
+          <span>AgentLoom</span>
+          <a href={REPO} className="transition-colors hover:text-text-dim">
+            Source
+          </a>
+          <a href="/app.html" className="transition-colors hover:text-text-dim">
+            Debugger
+          </a>
+          <span className="ml-auto">
+            Built with React Flow and the Claude API.
+          </span>
+        </div>
+      </footer>
+    </div>
+  );
+}
