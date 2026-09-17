@@ -1,31 +1,29 @@
 import { useEffect, useState } from 'react'
 import type { State, StepEvent } from '../../packages/engine/index.ts'
+import { TypeDot } from '../canvas/LoomNodeView.tsx'
 import { ms, usd } from '../lib/stats.ts'
 import { useStore } from '../store.ts'
+import { button, control, Field } from '../ui.tsx'
 
-const btn =
-  'rounded border border-zinc-700 bg-zinc-900 px-3 py-1 text-xs hover:border-zinc-500 disabled:opacity-40 disabled:hover:border-zinc-700'
-
-const show = (v: unknown) =>
-  typeof v === 'string' ? v : JSON.stringify(v, null, 2)
+const show = (v: unknown) => (typeof v === 'string' ? v : JSON.stringify(v, null, 2))
 
 /** What this step changed. The diff is the question you are actually asking, not the dump. */
 function Diff({ step }: { step: StepEvent }) {
   const keys = [...new Set([...Object.keys(step.stateBefore), ...Object.keys(step.stateAfter)])]
   const changed = keys.filter((k) => show(step.stateBefore[k]) !== show(step.stateAfter[k]))
-  if (!changed.length) return <p className="text-xs text-zinc-600">No state change.</p>
+  if (!changed.length) return <p className="text-meta text-text-faint">This step left the state unchanged.</p>
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {changed.map((k) => (
-        <div key={k} className="font-mono text-[11px]">
-          <div className="text-zinc-500">{k}</div>
+        <div key={k} className="space-y-1">
+          <div className="font-mono text-micro text-text-dim">{k}</div>
           {k in step.stateBefore && (
-            <div className="whitespace-pre-wrap break-words rounded bg-red-950/40 px-2 py-1 text-red-300">
-              - {show(step.stateBefore[k])}
+            <div className="whitespace-pre-wrap break-words rounded-md border-l-2 border-halt/60 bg-halt/10 px-2.5 py-1.5 font-mono text-meta text-rose-200">
+              {show(step.stateBefore[k])}
             </div>
           )}
-          <div className="whitespace-pre-wrap break-words rounded bg-emerald-950/40 px-2 py-1 text-emerald-300">
-            + {show(step.stateAfter[k])}
+          <div className="whitespace-pre-wrap break-words rounded-md border-l-2 border-live/60 bg-live/10 px-2.5 py-1.5 font-mono text-meta text-emerald-200">
+            {show(step.stateAfter[k])}
           </div>
         </div>
       ))}
@@ -34,77 +32,93 @@ function Diff({ step }: { step: StepEvent }) {
 }
 
 function Inspector({ step }: { step: StepEvent }) {
-  const [tab, setTab] = useState<'diff' | 'state' | 'prompt'>('diff')
+  const [tab, setTab] = useState<'changed' | 'state' | 'prompt'>('changed')
   const rewindTo = useStore((s) => s.rewindTo)
   const [edit, setEdit] = useState('')
 
-  useEffect(() => setTab('diff'), [step.step])
+  useEffect(() => setTab('changed'), [step.step])
+
+  const tabs = [
+    ['changed', 'What changed'],
+    ['state', 'Full state'],
+    ['prompt', 'Prompt sent'],
+  ] as const
 
   return (
-    <div className="space-y-3 border-t border-zinc-800 p-3">
-      <div className="flex gap-1">
-        {(['diff', 'state', 'prompt'] as const).map((t) => (
+    <div className="space-y-4 border-t border-line p-4">
+      <div className="flex items-center gap-1">
+        {tabs.map(([id, label]) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`rounded px-2 py-0.5 text-xs ${tab === t ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'}`}
+            key={id}
+            onClick={() => setTab(id)}
+            className={`rounded-md px-2.5 py-1 text-meta transition-colors ${
+              tab === id ? 'bg-ink-600 text-text' : 'text-text-dim hover:text-text'
+            }`}
           >
-            {t}
+            {label}
           </button>
         ))}
-        <span className="ml-auto font-mono text-[10px] text-zinc-500">
+        <span className="tnum ml-auto font-mono text-micro text-text-faint">
           {ms(step.meta?.latencyMs)} {usd(step.meta?.costUsd)}
         </span>
       </div>
 
       {step.meta?.error && (
-        <div className="rounded bg-red-950/50 px-2 py-1 font-mono text-[11px] text-red-300">{step.meta.error}</div>
+        <div className="rounded-md border border-halt/40 bg-halt/10 px-2.5 py-2 font-mono text-meta text-rose-200">
+          {step.meta.error}
+        </div>
       )}
 
-      {tab === 'diff' && <Diff step={step} />}
+      {tab === 'changed' && <Diff step={step} />}
 
       {tab === 'state' && (
-        <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] text-zinc-300">
+        <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-md bg-ink-900 p-3 font-mono text-meta text-text-dim">
           {JSON.stringify(step.stateAfter, null, 2)}
         </pre>
       )}
 
       {tab === 'prompt' &&
         (step.meta?.prompt ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {step.meta.system && (
-              <>
-                <div className="text-[11px] uppercase tracking-wide text-zinc-500">system</div>
-                <pre className="whitespace-pre-wrap break-words rounded bg-zinc-900 p-2 font-mono text-[11px] text-zinc-400">
+              <div className="space-y-1">
+                <div className="text-meta text-text-faint">System</div>
+                <pre className="whitespace-pre-wrap break-words rounded-md bg-ink-900 p-3 font-mono text-meta text-text-dim">
                   {step.meta.system}
                 </pre>
-              </>
+              </div>
             )}
-            <div className="text-[11px] uppercase tracking-wide text-zinc-500">
-              prompt sent ({step.meta.model})
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-2">
+                <span className="text-meta text-text-faint">Sent to</span>
+                <span className="font-mono text-micro text-text-dim">{step.meta.model}</span>
+              </div>
+              <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words rounded-md bg-ink-900 p-3 font-mono text-meta text-sky-200">
+                {step.meta.prompt}
+              </pre>
             </div>
-            <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words rounded bg-zinc-900 p-2 font-mono text-[11px] text-sky-200">
-              {step.meta.prompt}
-            </pre>
-            <div className="text-[11px] uppercase tracking-wide text-zinc-500">response</div>
-            <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words rounded bg-zinc-900 p-2 font-mono text-[11px] text-violet-200">
-              {step.meta.response}
-            </pre>
+            <div className="space-y-1">
+              <div className="text-meta text-text-faint">Came back</div>
+              <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words rounded-md bg-ink-900 p-3 font-mono text-meta text-violet-200">
+                {step.meta.response}
+              </pre>
+            </div>
           </div>
         ) : (
-          <p className="text-xs text-zinc-600">Not a model call.</p>
+          <p className="text-meta text-text-faint">This step did not call a model.</p>
         ))}
 
-      <div className="space-y-1 border-t border-zinc-800 pt-3">
-        <div className="text-[11px] uppercase tracking-wide text-zinc-500">replay from here with a change</div>
-        <textarea
-          className="h-16 w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1 font-mono text-[11px] outline-none focus:border-sky-500"
-          placeholder='{ "intent": "technical" }'
-          value={edit}
-          onChange={(e) => setEdit(e.target.value)}
-        />
+      <div className="space-y-2 border-t border-line pt-4">
+        <Field label="Run again from here" hint="state changes to apply first">
+          <textarea
+            className={`${control} h-20 font-mono text-meta`}
+            placeholder={'{ "intent": "technical" }'}
+            value={edit}
+            onChange={(e) => setEdit(e.target.value)}
+          />
+        </Field>
         <button
-          className={btn}
+          className={button}
           onClick={() => {
             let patch: State = {}
             try {
@@ -115,7 +129,7 @@ function Inspector({ step }: { step: StepEvent }) {
             rewindTo(step.step, patch)
           }}
         >
-          rewind to step {step.step}
+          Replay from step {step.step}
         </button>
       </div>
     </div>
@@ -137,102 +151,128 @@ export function DebugPanel() {
     inspect,
     editState,
     breakpoints,
+    nodes,
   } = useStore()
 
   const running = status === 'running'
-  const live = status === 'paused' || status === 'awaiting-approval'
+  const held = status === 'paused' || status === 'awaiting-approval'
   const selected = currentStep !== null ? steps[currentStep] : undefined
   const totalCost = steps.reduce((sum, s) => sum + (s.meta?.costUsd ?? 0), 0)
+  const typeOf = (id: string) => nodes.find((n) => n.id === id)?.data.type ?? 'output'
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto">
-      <div className="space-y-2 p-3">
-        <div className="text-[11px] uppercase tracking-wide text-zinc-500">initial state (JSON)</div>
-        <textarea
-          className="h-20 w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1 font-mono text-[11px] outline-none focus:border-sky-500"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-        />
-        <div className="flex flex-wrap gap-1">
-          <button className={btn} onClick={start} disabled={running}>
-            run
+    <div className="flex h-full flex-col">
+      <div className="space-y-3 p-4">
+        <Field label="Starting state" hint="JSON">
+          <textarea
+            className={`${control} h-24 font-mono text-meta`}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+          />
+        </Field>
+
+        <div className="flex flex-wrap gap-1.5">
+          <button className={button} onClick={start} disabled={running}>
+            Run
           </button>
-          <button className={btn} onClick={stepOnce} disabled={running}>
-            step
+          <button className={button} onClick={stepOnce} disabled={running}>
+            Step
           </button>
-          <button className={btn} onClick={resume} disabled={!live}>
-            resume
+          <button className={button} onClick={resume} disabled={!held}>
+            Continue
           </button>
-          <button className={btn} onClick={stop} disabled={status === 'idle'}>
-            stop
+          <button className={button} onClick={stop} disabled={status === 'idle'}>
+            Stop
           </button>
         </div>
-        <div className="flex items-center gap-2 font-mono text-[11px]">
+
+        <div className="tnum flex items-center gap-3 font-mono text-micro">
           <span
             className={
               status === 'error' || status === 'halted'
-                ? 'text-red-400'
-                : status === 'running'
+                ? 'text-halt'
+                : running
                   ? 'text-amber-400'
                   : status === 'done'
-                    ? 'text-emerald-400'
-                    : 'text-zinc-400'
+                    ? 'text-live'
+                    : 'text-text-dim'
             }
           >
             {status}
           </span>
-          <span className="text-zinc-600">
-            {steps.length} steps / {usd(totalCost)}
+          <span className="text-text-faint">
+            {steps.length} steps · {usd(totalCost)}
           </span>
-          {breakpoints.length > 0 && <span className="text-red-400">{breakpoints.length} bp</span>}
+          {breakpoints.length > 0 && (
+            <span className="text-halt">
+              {breakpoints.length} breakpoint{breakpoints.length > 1 ? 's' : ''}
+            </span>
+          )}
         </div>
-        {error && <div className="rounded bg-red-950/50 px-2 py-1 font-mono text-[11px] text-red-300">{error}</div>}
+
+        {error && (
+          <div className="rounded-md border border-halt/40 bg-halt/10 px-2.5 py-2 font-mono text-meta text-rose-200">
+            {error}
+          </div>
+        )}
 
         {status === 'awaiting-approval' && (
-          <div className="space-y-1 rounded border border-rose-900 bg-rose-950/40 p-2">
-            <div className="text-xs text-rose-200">{selected?.meta?.response ?? 'Waiting for approval'}</div>
-            <div className="flex gap-1">
+          <div className="space-y-2.5 rounded-lg border border-halt/40 bg-halt/10 p-3">
+            <p className="text-ui text-rose-100">{selected?.meta?.response ?? 'This run is waiting on you.'}</p>
+            <div className="flex gap-1.5">
               <button
-                className={btn}
+                className={button}
                 onClick={() => {
                   editState({ approved: true })
                   resume()
                 }}
               >
-                approve
+                Approve
               </button>
               <button
-                className={btn}
+                className={button}
                 onClick={() => {
                   editState({ approved: false })
                   resume()
                 }}
               >
-                reject
+                Reject
               </button>
             </div>
           </div>
         )}
       </div>
 
-      <div className="border-t border-zinc-800">
-        {steps.map((s) => (
-          <button
-            key={s.step}
-            onClick={() => inspect(s.step)}
-            className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs hover:bg-zinc-900 ${
-              currentStep === s.step ? 'bg-zinc-800' : ''
-            }`}
-          >
-            <span className="w-5 text-right font-mono text-[10px] text-zinc-600">{s.step}</span>
-            <span className="flex-1 truncate">{s.label ?? s.nodeId}</span>
-            {s.handle && <span className="font-mono text-[10px] text-emerald-400">{s.handle}</span>}
-            {s.status === 'error' && <span className="text-[10px] text-red-400">err</span>}
-          </button>
-        ))}
+      <div className="min-h-0 flex-1 overflow-y-auto border-t border-line">
+        {steps.length === 0 ? (
+          <p className="p-4 text-meta text-text-faint">
+            Run the workflow to see each step land here. Click a node's dot to break before it.
+          </p>
+        ) : (
+          <>
+            <div>
+              {steps.map((s) => (
+                <button
+                  key={s.step}
+                  onClick={() => inspect(s.step)}
+                  className={`flex w-full items-center gap-2.5 px-4 py-2 text-left transition-colors hover:bg-ink-700 ${
+                    currentStep === s.step ? 'bg-ink-600' : ''
+                  }`}
+                >
+                  <span className="tnum w-5 shrink-0 text-right font-mono text-micro text-text-faint">
+                    {s.step}
+                  </span>
+                  <TypeDot type={typeOf(s.nodeId)} size={6} />
+                  <span className="min-w-0 flex-1 truncate text-ui text-text">{s.label ?? s.nodeId}</span>
+                  {s.handle && <span className="font-mono text-micro text-live">{s.handle}</span>}
+                  {s.status === 'error' && <span className="text-micro text-halt">failed</span>}
+                </button>
+              ))}
+            </div>
+            {selected && <Inspector step={selected} />}
+          </>
+        )}
       </div>
-
-      {selected && <Inspector step={selected} />}
     </div>
   )
 }

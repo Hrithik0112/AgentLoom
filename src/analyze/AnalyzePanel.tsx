@@ -5,19 +5,18 @@ import { toGraph, type LoomDoc } from '../lib/graph.ts'
 import { loadVersions, saveVersion } from '../lib/persist.ts'
 import { ms, nodeStats, usd } from '../lib/stats.ts'
 import { useStore } from '../store.ts'
+import { button, control, Field, SectionTitle } from '../ui.tsx'
 import { Sankey } from './Sankey.tsx'
 
 type Scenario = { name: string; input: State; expect?: State }
 type Cell = { result?: RunResult; cost: number; latency: number; pass?: boolean }
-
-const btn = 'rounded border border-zinc-700 bg-zinc-900 px-3 py-1 text-xs hover:border-zinc-500 disabled:opacity-40'
 
 const totals = (r: RunResult) => ({
   cost: r.steps.reduce((s, x) => s + (x.meta?.costUsd ?? 0), 0),
   latency: r.steps.reduce((s, x) => s + (x.meta?.latencyMs ?? 0), 0),
 })
 
-/** Exact match on the keys the scenario names. Anything subtler is a manual call. */
+/** Exact match on the keys the scenario names. Anything subtler is a judgement call. */
 const matches = (state: State, expect?: State) =>
   expect ? Object.entries(expect).every(([k, v]) => JSON.stringify(state[k]) === JSON.stringify(v)) : undefined
 
@@ -29,6 +28,11 @@ const DEFAULT_SUITE = JSON.stringify(
   null,
   2,
 )
+
+const th = 'pb-2 text-left text-meta font-normal text-text-faint'
+const thNum = 'pb-2 text-right text-meta font-normal text-text-faint'
+const td = 'py-2 text-ui text-text'
+const tdNum = 'tnum py-2 text-right font-mono text-meta text-text-dim'
 
 export function AnalyzePanel() {
   const { runs, refreshRuns, nodes, edges, name, apiKey } = useStore()
@@ -45,7 +49,7 @@ export function AnalyzePanel() {
   }, [refreshRuns])
 
   const stats = useMemo(() => nodeStats(runs), [runs])
-  const worst = Math.max(1, ...Object.values(stats).map((s) => s.avgLatencyMs ?? 0))
+  const slowest = Math.max(1, ...Object.values(stats).map((s) => s.avgLatencyMs ?? 0))
 
   const snapshot = () => setVersions(saveVersion({ name, version: 0, nodes, edges }))
 
@@ -55,10 +59,10 @@ export function AnalyzePanel() {
     try {
       scenarios = JSON.parse(suite)
     } catch {
-      return setErr('The test suite is not valid JSON')
+      return setErr('That test suite is not valid JSON.')
     }
     const picked = [versions[a], versions[b]].filter(Boolean)
-    if (picked.length < 2) return setErr('Snapshot at least two versions to compare')
+    if (picked.length < 2) return setErr('Save at least two versions before comparing.')
 
     setBusy(true)
     const ctx = runContext(apiKey)
@@ -67,11 +71,7 @@ export function AnalyzePanel() {
       for (const scenario of scenarios) {
         try {
           const result = await run(toGraph(doc.nodes, doc.edges, { name: doc.name }), scenario.input, ctx)
-          next[`${vi}:${scenario.name}`] = {
-            result,
-            ...totals(result),
-            pass: matches(result.state, scenario.expect),
-          }
+          next[`${vi}:${scenario.name}`] = { result, ...totals(result), pass: matches(result.state, scenario.expect) }
         } catch (e) {
           next[`${vi}:${scenario.name}`] = { cost: 0, latency: 0, pass: false }
           setErr((e as Error).message)
@@ -87,129 +87,153 @@ export function AnalyzePanel() {
   try {
     scenarios = JSON.parse(suite)
   } catch {
-    /* the error is surfaced on compare */
+    /* surfaced when they run it */
   }
 
   return (
     <div className="min-w-0 flex-1 overflow-y-auto">
-      <section className="border-b border-zinc-800">
-        <h2 className="px-4 pt-4 text-xs uppercase tracking-wide text-zinc-500">
-          path frequency across {runs.length} runs
-        </h2>
-        <Sankey runs={runs} />
-      </section>
+      <div className="mx-auto max-w-5xl space-y-10 px-8 py-7">
+        <section className="space-y-4">
+          <SectionTitle>Which way requests go</SectionTitle>
+          {runs.length === 0 ? (
+            <p className="text-ui text-text-dim">
+              Nothing recorded yet. Run the workflow a few times in Debug and the paths will show up here.
+            </p>
+          ) : (
+            <>
+              <p className="text-meta text-text-dim">
+                {runs.length} run{runs.length > 1 ? 's' : ''}. Band thickness is how many went that way.
+              </p>
+              <Sankey runs={runs} />
+            </>
+          )}
+        </section>
 
-      <section className="border-b border-zinc-800 p-4">
-        <h2 className="mb-3 text-xs uppercase tracking-wide text-zinc-500">per node</h2>
-        <table className="w-full text-xs">
-          <thead className="text-zinc-500">
-            <tr>
-              <th className="text-left font-normal">node</th>
-              <th className="text-right font-normal">visits</th>
-              <th className="text-right font-normal">avg latency</th>
-              <th className="text-right font-normal">avg cost</th>
-              <th className="text-right font-normal">total cost</th>
-              <th className="text-right font-normal">errors</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(stats).map(([id, s]) => (
-              <tr key={id} className="border-t border-zinc-900">
-                <td className="py-1 font-mono text-zinc-300">{id}</td>
-                <td className="py-1 text-right font-mono text-zinc-400">{s.visits}</td>
-                <td
-                  className="py-1 text-right font-mono"
-                  style={{ color: `color-mix(in oklab, #f87171 ${((s.avgLatencyMs ?? 0) / worst) * 100}%, #a1a1aa)` }}
-                >
-                  {ms(s.avgLatencyMs)}
-                </td>
-                <td className="py-1 text-right font-mono text-zinc-400">{usd(s.avgCostUsd)}</td>
-                <td className="py-1 text-right font-mono text-zinc-400">{usd(s.totalCostUsd)}</td>
-                <td className={`py-1 text-right font-mono ${s.errors ? 'text-red-400' : 'text-zinc-600'}`}>
-                  {s.errors}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+        {runs.length > 0 && (
+          <section className="space-y-4">
+            <SectionTitle>Cost and latency by node</SectionTitle>
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-line">
+                  <th className={th}>Node</th>
+                  <th className={thNum}>Visits</th>
+                  <th className={thNum}>Avg latency</th>
+                  <th className={thNum}>Avg cost</th>
+                  <th className={thNum}>Total cost</th>
+                  <th className={thNum}>Failures</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(stats).map(([id, s]) => (
+                  <tr key={id} className="border-b border-line/60">
+                    <td className={`${td} font-mono text-meta`}>{id}</td>
+                    <td className={tdNum}>{s.visits}</td>
+                    <td
+                      className={tdNum}
+                      style={{
+                        color: `color-mix(in oklab, #fb7185 ${((s.avgLatencyMs ?? 0) / slowest) * 100}%, #8794a8)`,
+                      }}
+                    >
+                      {ms(s.avgLatencyMs)}
+                    </td>
+                    <td className={tdNum}>{usd(s.avgCostUsd)}</td>
+                    <td className={tdNum}>{usd(s.totalCostUsd)}</td>
+                    <td className={`${tdNum} ${s.errors ? 'text-halt' : ''}`}>{s.errors || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        )}
 
-      <section className="space-y-3 p-4">
-        <div className="flex items-center gap-2">
-          <h2 className="text-xs uppercase tracking-wide text-zinc-500">version comparison</h2>
-          <button className={`${btn} ml-auto`} onClick={snapshot}>
-            snapshot current graph
-          </button>
-        </div>
+        <section className="space-y-4">
+          <SectionTitle
+            aside={
+              <button className={button} onClick={snapshot}>
+                Save this version
+              </button>
+            }
+          >
+            Compare two versions
+          </SectionTitle>
 
-        <div className="flex gap-2">
-          {[
-            [a, setA, 'A'],
-            [b, setB, 'B'],
-          ].map(([value, setValue, tag]) => (
-            <select
-              key={tag as string}
-              className="rounded border border-zinc-700 bg-zinc-900 px-2 py-1 text-xs"
-              value={value as number}
-              onChange={(e) => (setValue as (n: number) => void)(Number(e.target.value))}
-            >
-              {versions.map((v, i) => (
-                <option key={i} value={i}>
-                  {tag as string}: v{v.version} {v.name}
-                </option>
+          {versions.length < 2 ? (
+            <p className="text-ui text-text-dim">
+              Save the graph as a version, change something, then save again. You can run both against the same
+              scenarios and see what moved.
+            </p>
+          ) : (
+            <div className="flex flex-wrap items-end gap-3">
+              {(
+                [
+                  ['A', a, setA],
+                  ['B', b, setB],
+                ] as const
+              ).map(([tag, value, setValue]) => (
+                <Field key={tag} label={`Version ${tag}`}>
+                  <select className={control} value={value} onChange={(e) => setValue(Number(e.target.value))}>
+                    {versions.map((v, i) => (
+                      <option key={i} value={i}>
+                        v{v.version} {v.name}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
               ))}
-            </select>
-          ))}
-          <button className={btn} onClick={compare} disabled={busy}>
-            {busy ? 'running...' : 'run suite against both'}
-          </button>
-        </div>
+              <button className={button} onClick={compare} disabled={busy}>
+                {busy ? 'Running…' : 'Run both'}
+              </button>
+            </div>
+          )}
 
-        <textarea
-          className="h-32 w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1 font-mono text-[11px] outline-none focus:border-sky-500"
-          value={suite}
-          onChange={(e) => setSuite(e.target.value)}
-        />
-        {err && <div className="rounded bg-red-950/50 px-2 py-1 font-mono text-[11px] text-red-300">{err}</div>}
+          <Field label="Scenarios" hint="name, input, and any expected keys">
+            <textarea
+              className={`${control} h-40 font-mono text-meta`}
+              value={suite}
+              onChange={(e) => setSuite(e.target.value)}
+            />
+          </Field>
 
-        {Object.keys(grid).length > 0 && (
-          <table className="w-full text-xs">
-            <thead className="text-zinc-500">
-              <tr>
-                <th className="text-left font-normal">scenario</th>
-                <th className="text-right font-normal">A cost</th>
-                <th className="text-right font-normal">A time</th>
-                <th className="text-right font-normal">A</th>
-                <th className="text-right font-normal">B cost</th>
-                <th className="text-right font-normal">B time</th>
-                <th className="text-right font-normal">B</th>
-              </tr>
-            </thead>
-            <tbody>
-              {scenarios.map((s) => {
-                const cells = [grid[`0:${s.name}`], grid[`1:${s.name}`]]
-                return (
-                  <tr key={s.name} className="border-t border-zinc-900">
-                    <td className="py-1 text-zinc-300">{s.name}</td>
-                    {cells.map((c, i) => (
+          {err && (
+            <div className="rounded-md border border-halt/40 bg-halt/10 px-3 py-2 text-meta text-rose-200">{err}</div>
+          )}
+
+          {Object.keys(grid).length > 0 && (
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-line">
+                  <th className={th}>Scenario</th>
+                  <th className={thNum}>A cost</th>
+                  <th className={thNum}>A time</th>
+                  <th className={thNum}>A result</th>
+                  <th className={thNum}>B cost</th>
+                  <th className={thNum}>B time</th>
+                  <th className={thNum}>B result</th>
+                </tr>
+              </thead>
+              <tbody>
+                {scenarios.map((s) => (
+                  <tr key={s.name} className="border-b border-line/60">
+                    <td className={td}>{s.name}</td>
+                    {[grid[`0:${s.name}`], grid[`1:${s.name}`]].map((c, i) => (
                       <Fragment key={i}>
-                        <td className="py-1 text-right font-mono text-zinc-400">{usd(c?.cost)}</td>
-                        <td className="py-1 text-right font-mono text-zinc-400">{ms(c?.latency)}</td>
+                        <td className={tdNum}>{usd(c?.cost)}</td>
+                        <td className={tdNum}>{ms(c?.latency)}</td>
                         <td
-                          className={`py-1 text-right font-mono ${c?.pass === false ? 'text-red-400' : c?.pass ? 'text-emerald-400' : 'text-zinc-600'}`}
+                          className={`${tdNum} ${c?.pass === false ? 'text-halt' : c?.pass ? 'text-live' : ''}`}
                           title={JSON.stringify(c?.result?.state, null, 2)}
                         >
-                          {c?.pass === undefined ? 'manual' : c.pass ? 'pass' : 'fail'}
+                          {c?.pass === undefined ? 'review' : c.pass ? 'matched' : 'missed'}
                         </td>
                       </Fragment>
                     ))}
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        )}
-      </section>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+      </div>
     </div>
   )
 }

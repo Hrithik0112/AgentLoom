@@ -19,30 +19,30 @@ const supportTriage: LoomDoc = {
   name: 'Support triage',
   version: 1,
   nodes: [
-    node('start', 'input', 40, 200, { seed: {} }, 'ticket in'),
-    node('classify', 'llm', 260, 200, {
+    node('start', 'input', 0, 250, { seed: {} }, 'ticket in'),
+    node('classify', 'llm', 280, 250, {
       prompt:
         'Classify this support ticket as exactly one word, billing, technical, or other.\n\nTicket: {{ ticket }}',
       outputKey: 'intent',
       model: 'claude-opus-5',
       maxTokens: 16,
     }, 'classify intent'),
-    node('route', 'condition', 500, 200, {
+    node('route', 'condition', 560, 240, {
       branches: [
         { handle: 'billing', expr: "intent.includes('billing')" },
         { handle: 'technical', expr: "intent.includes('technical')" },
       ],
     }, 'route'),
-    node('refund', 'llm', 740, 80, {
+    node('refund', 'llm', 840, 70, {
       prompt: 'Write a short, warm billing reply to: {{ ticket }}',
       outputKey: 'reply',
     }, 'billing reply'),
-    node('techfix', 'llm', 740, 220, {
+    node('techfix', 'llm', 840, 250, {
       prompt: 'Write a short troubleshooting reply to: {{ ticket }}',
       outputKey: 'reply',
     }, 'technical reply'),
-    node('escalate', 'approval', 740, 360, { message: 'No clear intent. Send to a human?' }, 'human gate'),
-    node('end', 'output', 990, 200, {}, 'reply out'),
+    node('escalate', 'approval', 840, 430, { message: 'No clear intent. Send to a human?' }, 'human gate'),
+    node('end', 'output', 1120, 250, {}, 'reply out'),
   ] as LoomDoc['nodes'],
   edges: [
     edge('start', 'classify'),
@@ -60,22 +60,22 @@ const researchLoop: LoomDoc = {
   name: 'Research loop',
   version: 1,
   nodes: [
-    node('start', 'input', 40, 180, { seed: { notes: [] } }, 'topics in'),
-    node('each', 'loop', 260, 180, { over: 'topics', itemKey: 'topic' }, 'for each topic'),
-    node('dig', 'llm', 500, 100, {
+    node('start', 'input', 0, 190, { seed: { notes: [] } }, 'topics in'),
+    node('each', 'loop', 300, 180, { over: 'topics', itemKey: 'topic' }, 'for each topic'),
+    node('dig', 'llm', 620, 40, {
       prompt: 'Give me three concrete facts about: {{ topic }}',
       outputKey: 'fact',
     }, 'research'),
-    node('collect', 'tool', 740, 100, {
+    node('collect', 'tool', 920, 40, {
       kind: 'js',
       code: 'return [...(state.notes ?? []), { topic: state.topic, fact: state.fact }]',
       outputKey: 'notes',
     }, 'collect'),
-    node('summary', 'llm', 500, 300, {
+    node('summary', 'llm', 620, 360, {
       prompt: 'Summarize these research notes into one paragraph:\n\n{{ notes }}',
       outputKey: 'summary',
     }, 'summarize'),
-    node('end', 'output', 740, 300, {}, 'summary out'),
+    node('end', 'output', 920, 360, {}, 'summary out'),
   ] as LoomDoc['nodes'],
   edges: [
     edge('start', 'each'),

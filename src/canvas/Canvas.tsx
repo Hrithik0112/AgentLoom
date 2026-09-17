@@ -1,7 +1,7 @@
 import { Background, Controls, MiniMap, ReactFlow, type Edge } from '@xyflow/react'
 import { useMemo } from 'react'
 import { useStore } from '../store.ts'
-import { LoomNodeView } from './LoomNodeView.tsx'
+import { LoomNodeView, TYPE_COLOR } from './LoomNodeView.tsx'
 
 const nodeTypes = { loom: LoomNodeView }
 
@@ -18,11 +18,10 @@ export function Canvas() {
 
   const painted: Edge[] = useMemo(
     () =>
-      edges.map((e) => ({
-        ...e,
-        animated: traversed.has(`${e.source}->${e.target}`),
-        className: traversed.has(`${e.source}->${e.target}`) ? 'active' : undefined,
-      })),
+      edges.map((e) => {
+        const hot = traversed.has(`${e.source}->${e.target}`)
+        return { ...e, animated: hot, className: hot ? 'traversed' : undefined }
+      }),
     [edges, traversed],
   )
 
@@ -37,16 +36,22 @@ export function Canvas() {
       onNodeClick={(_, node) => select(node.id)}
       onPaneClick={() => select(null)}
       fitView
-      proOptions={{ hideAttribution: false }}
-      className="bg-zinc-950"
+      fitViewOptions={{ padding: 0.16, minZoom: 0.7, maxZoom: 1 }}
+      minZoom={0.2}
+      className="bg-ink-900"
     >
-      <Background color="#27272a" gap={20} />
-      <Controls className="!border-zinc-700 !bg-zinc-900 [&>button]:!border-zinc-700 [&>button]:!bg-zinc-900 [&>button]:!fill-zinc-300" />
+      <Background color="#1b2230" gap={24} size={1.5} />
+      <Controls
+        showInteractive={false}
+        className="!rounded-lg !border !border-line !bg-ink-800 !shadow-none [&>button:hover]:!bg-ink-600 [&>button]:!border-0 [&>button]:!border-b [&>button]:!border-line [&>button]:!bg-ink-800 [&>button]:!fill-text-dim"
+      />
       <MiniMap
         pannable
-        className="!bg-zinc-900"
-        maskColor="rgba(9,9,11,0.7)"
-        nodeColor={() => '#3f3f46'}
+        zoomable
+        className="!rounded-lg !border !border-line !bg-ink-800"
+        maskColor="rgba(11,14,20,0.78)"
+        nodeColor={(n) => TYPE_COLOR[(n.data as { type: string }).type] ?? '#94a3b8'}
+        nodeStrokeWidth={0}
       />
     </ReactFlow>
   )

@@ -1,19 +1,10 @@
 import { MODELS } from '../../packages/engine/index.ts'
 import { readsOf, writesOf, type LoomNode } from '../lib/graph.ts'
 import { useStore } from '../store.ts'
-import { TYPE_COLOR } from './LoomNodeView.tsx'
+import { control, Field, SectionTitle } from '../ui.tsx'
+import { TypeDot } from './LoomNodeView.tsx'
 
-const input = 'w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1 text-sm outline-none focus:border-sky-500'
-const label = 'block text-[11px] uppercase tracking-wide text-zinc-500 mb-1'
-
-function Field({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <span className={label}>{title}</span>
-      {children}
-    </div>
-  )
-}
+const mono = `${control} font-mono text-meta`
 
 export function ConfigPanel() {
   const selectedId = useStore((s) => s.selectedId)
@@ -22,7 +13,13 @@ export function ConfigPanel() {
   const deleteNode = useStore((s) => s.deleteNode)
 
   if (!node || !selectedId) {
-    return <p className="p-4 text-sm text-zinc-500">Select a node to configure it.</p>
+    return (
+      <div className="p-5">
+        <p className="text-ui text-text-dim">
+          Pick a node on the canvas to edit it, or add one from the left.
+        </p>
+      </div>
+    )
   }
 
   const data = node.data as LoomNode['data']
@@ -31,27 +28,31 @@ export function ConfigPanel() {
     updateNode(selectedId, { config: { ...data.config, ...patch } })
 
   return (
-    <div className="space-y-4 p-4">
-      <div className="flex items-center gap-2">
-        <span className={`h-2 w-2 rounded-full ${TYPE_COLOR[data.type]}`} />
-        <span className="font-mono text-xs text-zinc-400">{data.type}</span>
-        <span className="ml-auto font-mono text-[10px] text-zinc-600">{selectedId}</span>
+    <div className="space-y-5 p-5">
+      <div className="flex items-center gap-2.5">
+        <TypeDot type={data.type} size={8} />
+        <SectionTitle>{data.type}</SectionTitle>
+        <span className="ml-auto font-mono text-micro text-text-faint">{selectedId}</span>
       </div>
 
-      <Field title="label">
-        <input className={input} value={data.label} onChange={(e) => updateNode(selectedId, { label: e.target.value })} />
+      <Field label="Name">
+        <input
+          className={control}
+          value={data.label}
+          onChange={(e) => updateNode(selectedId, { label: e.target.value })}
+        />
       </Field>
 
       {data.type === 'input' && (
-        <Field title="seed state (JSON)">
+        <Field label="Starting state" hint="JSON">
           <textarea
-            className={`${input} h-28 font-mono text-xs`}
+            className={`${mono} h-32`}
             defaultValue={JSON.stringify(cfg.seed ?? {}, null, 2)}
             onBlur={(e) => {
               try {
                 setCfg({ seed: JSON.parse(e.target.value || '{}') })
               } catch {
-                /* leave the previous value in place until it parses */
+                /* keep the last good value until it parses */
               }
             }}
           />
@@ -60,26 +61,26 @@ export function ConfigPanel() {
 
       {data.type === 'llm' && (
         <>
-          <Field title="model">
-            <select className={input} value={cfg.model ?? MODELS[0]} onChange={(e) => setCfg({ model: e.target.value })}>
+          <Field label="Model">
+            <select className={control} value={cfg.model ?? MODELS[0]} onChange={(e) => setCfg({ model: e.target.value })}>
               {MODELS.map((m) => (
                 <option key={m}>{m}</option>
               ))}
             </select>
           </Field>
-          <Field title="system (optional)">
-            <textarea className={`${input} h-16 font-mono text-xs`} value={cfg.system ?? ''} onChange={(e) => setCfg({ system: e.target.value })} />
+          <Field label="System prompt" hint="optional">
+            <textarea className={`${mono} h-20`} value={cfg.system ?? ''} onChange={(e) => setCfg({ system: e.target.value })} />
           </Field>
-          <Field title="prompt">
-            <textarea className={`${input} h-40 font-mono text-xs`} value={cfg.prompt ?? ''} onChange={(e) => setCfg({ prompt: e.target.value })} />
+          <Field label="Prompt" hint="{{ state.key }} fills from state">
+            <textarea className={`${mono} h-44`} value={cfg.prompt ?? ''} onChange={(e) => setCfg({ prompt: e.target.value })} />
           </Field>
-          <div className="grid grid-cols-2 gap-2">
-            <Field title="writes to">
-              <input className={input} value={cfg.outputKey ?? ''} onChange={(e) => setCfg({ outputKey: e.target.value })} />
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Writes to">
+              <input className={mono} value={cfg.outputKey ?? ''} onChange={(e) => setCfg({ outputKey: e.target.value })} />
             </Field>
-            <Field title="max tokens">
+            <Field label="Max tokens">
               <input
-                className={input}
+                className={`${control} tnum`}
                 type="number"
                 value={cfg.maxTokens ?? 4096}
                 onChange={(e) => setCfg({ maxTokens: Number(e.target.value) })}
@@ -91,48 +92,49 @@ export function ConfigPanel() {
 
       {data.type === 'tool' && (
         <>
-          <Field title="kind">
-            <select className={input} value={cfg.kind ?? 'http'} onChange={(e) => setCfg({ kind: e.target.value })}>
-              <option value="http">http request</option>
-              <option value="js">javascript (runs in a worker)</option>
+          <Field label="Kind">
+            <select className={control} value={cfg.kind ?? 'http'} onChange={(e) => setCfg({ kind: e.target.value })}>
+              <option value="http">HTTP request</option>
+              <option value="js">JavaScript, sandboxed in a worker</option>
             </select>
           </Field>
           {cfg.kind === 'js' ? (
-            <Field title="code (receives `state`, returns a value)">
-              <textarea className={`${input} h-40 font-mono text-xs`} value={cfg.code ?? ''} onChange={(e) => setCfg({ code: e.target.value })} />
+            <Field label="Code" hint="receives state, returns a value">
+              <textarea className={`${mono} h-44`} value={cfg.code ?? ''} onChange={(e) => setCfg({ code: e.target.value })} />
             </Field>
           ) : (
             <>
-              <div className="grid grid-cols-[80px_1fr] gap-2">
-                <Field title="method">
-                  <select className={input} value={cfg.method ?? 'GET'} onChange={(e) => setCfg({ method: e.target.value })}>
+              <div className="grid grid-cols-[96px_1fr] gap-3">
+                <Field label="Method">
+                  <select className={control} value={cfg.method ?? 'GET'} onChange={(e) => setCfg({ method: e.target.value })}>
                     {['GET', 'POST', 'PUT', 'DELETE'].map((m) => (
                       <option key={m}>{m}</option>
                     ))}
                   </select>
                 </Field>
-                <Field title="url">
-                  <input className={`${input} font-mono text-xs`} value={cfg.url ?? ''} onChange={(e) => setCfg({ url: e.target.value })} />
+                <Field label="URL">
+                  <input className={mono} value={cfg.url ?? ''} onChange={(e) => setCfg({ url: e.target.value })} />
                 </Field>
               </div>
-              <Field title="body">
-                <textarea className={`${input} h-24 font-mono text-xs`} value={cfg.body ?? ''} onChange={(e) => setCfg({ body: e.target.value })} />
+              <Field label="Body">
+                <textarea className={`${mono} h-28`} value={cfg.body ?? ''} onChange={(e) => setCfg({ body: e.target.value })} />
               </Field>
             </>
           )}
-          <Field title="writes to">
-            <input className={input} value={cfg.outputKey ?? ''} onChange={(e) => setCfg({ outputKey: e.target.value })} />
+          <Field label="Writes to">
+            <input className={mono} value={cfg.outputKey ?? ''} onChange={(e) => setCfg({ outputKey: e.target.value })} />
           </Field>
         </>
       )}
 
       {data.type === 'condition' && (
-        <Field title="branches (first truthy wins, otherwise `else`)">
+        <Field label="Branches" hint="first match wins, otherwise else">
           <div className="space-y-2">
             {((cfg.branches ?? []) as { handle: string; expr: string }[]).map((b, i) => (
-              <div key={i} className="flex gap-1">
+              <div key={i} className="flex gap-2">
                 <input
-                  className={`${input} w-24`}
+                  aria-label={`Branch ${i + 1} name`}
+                  className={`${mono} w-28`}
                   value={b.handle}
                   onChange={(e) => {
                     const branches = [...(cfg.branches as { handle: string; expr: string }[])]
@@ -141,7 +143,8 @@ export function ConfigPanel() {
                   }}
                 />
                 <input
-                  className={`${input} font-mono text-xs`}
+                  aria-label={`Branch ${i + 1} condition`}
+                  className={mono}
                   value={b.expr}
                   onChange={(e) => {
                     const branches = [...(cfg.branches as { handle: string; expr: string }[])]
@@ -150,18 +153,21 @@ export function ConfigPanel() {
                   }}
                 />
                 <button
-                  className="px-1 text-zinc-500 hover:text-red-400"
+                  aria-label={`Remove branch ${b.handle}`}
+                  className="px-1 text-text-faint transition-colors hover:text-halt"
                   onClick={() => setCfg({ branches: (cfg.branches as unknown[]).filter((_, j) => j !== i) })}
                 >
-                  x
+                  ×
                 </button>
               </div>
             ))}
             <button
-              className="text-xs text-sky-400 hover:underline"
-              onClick={() => setCfg({ branches: [...((cfg.branches ?? []) as unknown[]), { handle: 'new', expr: 'true' }] })}
+              className="text-meta text-pick transition-opacity hover:opacity-80"
+              onClick={() =>
+                setCfg({ branches: [...((cfg.branches ?? []) as unknown[]), { handle: 'new', expr: 'true' }] })
+              }
             >
-              + branch
+              Add a branch
             </button>
           </div>
         </Field>
@@ -169,19 +175,19 @@ export function ConfigPanel() {
 
       {data.type === 'loop' && (
         <>
-          <Field title="over (state key holding an array)">
-            <input className={`${input} font-mono text-xs`} value={cfg.over ?? ''} onChange={(e) => setCfg({ over: e.target.value })} />
+          <Field label="For each" hint="state key holding an array">
+            <input className={mono} value={cfg.over ?? ''} onChange={(e) => setCfg({ over: e.target.value })} />
           </Field>
-          <Field title="or while (expression)">
-            <input className={`${input} font-mono text-xs`} value={cfg.while ?? ''} onChange={(e) => setCfg({ while: e.target.value })} />
+          <Field label="Or repeat while" hint="expression">
+            <input className={mono} value={cfg.while ?? ''} onChange={(e) => setCfg({ while: e.target.value })} />
           </Field>
-          <div className="grid grid-cols-2 gap-2">
-            <Field title="item key">
-              <input className={input} value={cfg.itemKey ?? ''} onChange={(e) => setCfg({ itemKey: e.target.value })} />
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Each item lands in">
+              <input className={mono} value={cfg.itemKey ?? ''} onChange={(e) => setCfg({ itemKey: e.target.value })} />
             </Field>
-            <Field title="max iterations">
+            <Field label="Stop after">
               <input
-                className={input}
+                className={`${control} tnum`}
                 type="number"
                 value={cfg.maxIterations ?? 100}
                 onChange={(e) => setCfg({ maxIterations: Number(e.target.value) })}
@@ -192,20 +198,27 @@ export function ConfigPanel() {
       )}
 
       {data.type === 'approval' && (
-        <Field title="message shown at the gate">
-          <input className={input} value={cfg.message ?? ''} onChange={(e) => setCfg({ message: e.target.value })} />
+        <Field label="Message at the gate">
+          <input className={control} value={cfg.message ?? ''} onChange={(e) => setCfg({ message: e.target.value })} />
         </Field>
       )}
 
-      <div className="rounded border border-zinc-800 bg-zinc-900/50 p-2 font-mono text-[11px]">
-        <div className="text-zinc-500">reads</div>
-        <div className="mb-2 text-sky-300">{readsOf(data).join(', ') || 'nothing'}</div>
-        <div className="text-zinc-500">writes</div>
-        <div className="text-emerald-300">{writesOf(data).join(', ') || 'nothing'}</div>
+      <div className="space-y-2.5 rounded-lg border border-line bg-ink-900 p-3">
+        <div className="flex gap-3">
+          <span className="w-12 shrink-0 text-meta text-text-faint">Reads</span>
+          <span className="font-mono text-meta text-sky-300">{readsOf(data).join('  ') || 'nothing'}</span>
+        </div>
+        <div className="flex gap-3">
+          <span className="w-12 shrink-0 text-meta text-text-faint">Writes</span>
+          <span className="font-mono text-meta text-live">{writesOf(data).join('  ') || 'nothing'}</span>
+        </div>
       </div>
 
-      <button onClick={() => deleteNode(selectedId)} className="text-xs text-zinc-500 hover:text-red-400">
-        delete node
+      <button
+        onClick={() => deleteNode(selectedId)}
+        className="text-meta text-text-faint transition-colors hover:text-halt"
+      >
+        Delete this node
       </button>
     </div>
   )
