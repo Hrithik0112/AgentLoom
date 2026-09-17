@@ -9,10 +9,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Link } from "../router.tsx";
-import { ThemeToggle } from "../ui.tsx";
+import { Mark, ThemeToggle, WhenSeen } from "../ui.tsx";
 import { LiveRun } from "./LiveRun.tsx";
 
-const AsciiLoom = lazy(() => import("./AsciiLoom.tsx"));
+const AsciiObserver = lazy(() => import("./AsciiObserver.tsx"));
 const LoomField = lazy(() => import("./LoomField.tsx"));
 
 const REPO = "https://github.com/Hrithik0112/AgentLoom";
@@ -75,23 +75,7 @@ export default function Landing() {
   return (
     <div className="min-h-full bg-surface">
       <header className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-5">
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 18 18"
-          aria-hidden
-          className="text-text"
-        >
-          <g
-            stroke="currentColor"
-            strokeWidth="1.4"
-            strokeLinecap="round"
-            fill="none"
-          >
-            <path d="M3 2v14M9 2v14M15 2v14" opacity="0.45" />
-            <path d="M1.5 6.5h15M1.5 11.5h15" />
-          </g>
-        </svg>
+        <Mark size={20} />
         <span className="text-title font-semibold tracking-tight text-text">
           agentloom
         </span>
@@ -163,7 +147,7 @@ export default function Landing() {
                   <div className="aspect-square w-full max-w-[340px]" />
                 }
               >
-                <AsciiLoom />
+                <AsciiObserver />
               </Suspense>
             </div>
           </div>
@@ -263,7 +247,12 @@ export default function Landing() {
             <div className="min-w-0 justify-self-stretch lg:justify-self-end">
               {/* The board is a fixed 643px. Without its own scroller it drags the whole
                   page sideways on a phone. */}
-              <div className="-mx-6 overflow-x-auto px-6 lg:mx-0 lg:px-0">
+              {/* The board flips from blank on mount, so it waits until it is on screen.
+                  Otherwise the flip is over before anyone has scrolled this far. */}
+              <WhenSeen
+                minHeight={116}
+                className="-mx-6 overflow-x-auto px-6 lg:mx-0 lg:px-0"
+              >
                 <SplitFlapDisplay
                   size="sm"
                   columns={20}
@@ -273,7 +262,7 @@ export default function Landing() {
                     { label: "REPLAY AT 3", value: "$0.06" },
                   ]}
                 />
-              </div>
+              </WhenSeen>
               <p className="mt-3 max-w-[26ch] text-meta text-text-faint">
                 One twelve step run, changed at step three, on Claude Opus.
               </p>

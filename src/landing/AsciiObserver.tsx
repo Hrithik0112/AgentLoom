@@ -5,14 +5,14 @@ import { useTheme } from "../lib/theme.ts";
 const TOKENS = ["--c-type-llm", "--c-live", "--c-text-faint"];
 
 /**
- * The mark, drawn in characters.
+ * The watcher, drawn in characters.
  *
- * A loom is warp threads under tension and weft passes binding them, which is the shape
- * in loom-mark.svg. Rendering it as ASCII is not an arbitrary filter: this is a tool for
- * reading execution in a terminal, and text is the medium it works in. The field reacts
- * to the cursor, so it answers the reader rather than animating at them.
+ * An agent runs where you cannot see it, and this tool exists to watch it. So the shape
+ * is an open eye, and it is rendered in ASCII because reading execution as text is the
+ * medium this tool actually works in. The field tracks the cursor, so the thing on the
+ * page that represents observation is itself observing the reader.
  */
-export default function AsciiLoom() {
+export default function AsciiObserver() {
   const [theme] = useTheme();
   const [systemFlip, setSystemFlip] = useState(0);
 
@@ -38,7 +38,7 @@ export default function AsciiLoom() {
     <div className="relative aspect-square w-full max-w-[340px]" aria-hidden>
       <AsciiEffect
         key={colors.join()}
-        imageSrc="/loom-mark.svg"
+        imageSrc="/observer.svg"
         alt=""
         variant="flow"
         colors={colors}

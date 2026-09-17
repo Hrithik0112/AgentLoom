@@ -1,5 +1,11 @@
 import { Monitor, Moon, Sun } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useTheme } from "./lib/theme.ts";
 
 export const control =
@@ -176,6 +182,91 @@ export function ThemeToggle() {
           <Icon size={14} aria-hidden />
         </button>
       ))}
+    </div>
+  );
+}
+
+/**
+ * The mark: a weft thread passing over, under, then over three warp threads.
+ *
+ * That over-under alternation is what makes a weave a weave rather than a grid, so the
+ * thread is drawn in three pieces: the dip behind the warp first, then the warp, then the
+ * two crests on top. The passing thread carries the live color because it is the one
+ * doing the work, which is the same thing the product shows you.
+ */
+export function Mark({ size = 20 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+      className="shrink-0 overflow-visible"
+    >
+      {/* the dip, drawn first so the warp covers it */}
+      <path
+        d="M8 12.6 Q12 17 16 12.6"
+        stroke="var(--color-live)"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+      {/* warp under tension */}
+      <path
+        d="M5 3.5v17M12 3.5v17M19 3.5v17"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        opacity="0.45"
+      />
+      {/* the crests, back on top */}
+      <path
+        d="M2.5 12.6 Q5 8.6 8 12.6M16 12.6 Q19 8.6 21.5 12.6"
+        stroke="var(--color-live)"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+/**
+ * Holds children back until they scroll into view, then mounts them for good.
+ *
+ * Some components animate from blank on mount. Mounted above the fold that animation is
+ * over before anyone scrolls to it, so the reader only ever sees the finished state.
+ * Reserve the space with `minHeight` so nothing jumps when it arrives.
+ */
+export function WhenSeen({
+  children,
+  minHeight,
+  className,
+}: {
+  children: ReactNode;
+  minHeight?: number | string;
+  className?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [seen, setSeen] = useState(false);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || seen) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setSeen(true);
+        observer.disconnect();
+      },
+      { threshold: 0.35 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [seen]);
+
+  return (
+    <div ref={ref} className={className} style={{ minHeight }}>
+      {seen ? children : null}
     </div>
   );
 }

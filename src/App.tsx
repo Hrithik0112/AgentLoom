@@ -20,6 +20,7 @@ import {
   control,
   DragHandle,
   quietButton,
+  Mark,
   ThemeToggle,
   useResizablePanel,
 } from "./ui.tsx";
@@ -57,28 +58,6 @@ const STATUS_COLOR: Record<RunStatus, string> = {
   error: "bg-halt",
   halted: "bg-halt",
 };
-
-function Mark() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 18 18"
-      aria-hidden
-      className="shrink-0"
-    >
-      <g
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        fill="none"
-      >
-        <path d="M3 2v14M9 2v14M15 2v14" opacity="0.45" />
-        <path d="M1.5 6.5h15M1.5 11.5h15" />
-      </g>
-    </svg>
-  );
-}
 
 export default function App() {
   const {
