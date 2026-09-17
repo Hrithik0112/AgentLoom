@@ -1,0 +1,20 @@
+@import 'tailwindcss';
+@import '@xyflow/react/dist/style.css';
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-zinc-950 text-zinc-100 antialiased;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.react-flow__edge-path {
+  stroke: var(--color-zinc-600);
+  stroke-width: 1.5;
+}
+.react-flow__edge.active .react-flow__edge-path {
+  stroke: var(--color-emerald-400);
+  stroke-width: 2.5;
+}
