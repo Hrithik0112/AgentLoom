@@ -10,6 +10,7 @@ import {
   type StepEvent,
 } from "../packages/engine/index.ts";
 import { runContext } from "./lib/context.ts";
+import { readSettings } from "./lib/settings.ts";
 import {
   DEFAULT_CONFIG,
   toGraph,
@@ -44,6 +45,7 @@ type Store = {
   mode: Mode;
   setMode: (mode: Mode) => void;
 
+  docId: string;
   name: string;
   version: number;
   nodes: LoomNode[];
@@ -61,6 +63,7 @@ type Store = {
   updateNode: (id: string, patch: Partial<LoomNode["data"]>) => void;
   deleteNode: (id: string) => void;
   loadDocument: (doc: LoomDoc) => void;
+  newWorkflow: () => void;
   rename: (name: string) => void;
 
   // debug
@@ -93,8 +96,8 @@ let nodeSeq = initial.nodes.length;
 
 export const useStore = create<Store>((set, get) => {
   const persist = () => {
-    const { name, version, nodes, edges } = get();
-    saveDoc({ name, version, nodes, edges });
+    const { docId, name, version, nodes, edges } = get();
+    saveDoc({ id: docId, name, version, nodes, edges });
   };
 
   const context = () => runContext(get().apiKey);
@@ -108,6 +111,7 @@ export const useStore = create<Store>((set, get) => {
     const { name, version, steps } = get();
     await saveRun({
       id: crypto.randomUUID(),
+      graphId: get().docId,
       graphName: name,
       graphVersion: version,
       startedAt: Date.now(),
@@ -172,6 +176,7 @@ export const useStore = create<Store>((set, get) => {
     mode: "build",
     setMode: (mode) => set({ mode }),
 
+    docId: initial.id ?? crypto.randomUUID(),
     name: initial.name,
     version: initial.version,
     nodes: initial.nodes,
@@ -212,7 +217,12 @@ export const useStore = create<Store>((set, get) => {
         data: {
           type,
           label: type,
-          config: structuredClone(DEFAULT_CONFIG[type]),
+          config: {
+            ...structuredClone(DEFAULT_CONFIG[type]),
+            // A new model call should use the model you said you prefer, not the one
+            // that happened to be first in the list.
+            ...(type === "llm" ? { model: readSettings().model } : {}),
+          },
         },
       };
       set({ nodes: [...get().nodes, node], selectedId: id });
@@ -234,10 +244,41 @@ export const useStore = create<Store>((set, get) => {
       });
       persist();
     },
+    newWorkflow: () => {
+      // An input and an output wired together is the smallest graph that runs. Starting
+      // from a truly empty canvas just means everyone draws these two first.
+      const doc: LoomDoc = {
+        id: crypto.randomUUID(),
+        name: "Untitled workflow",
+        version: 1,
+        nodes: [
+          {
+            id: "start",
+            type: "loom",
+            position: { x: 80, y: 180 },
+            data: { type: "input", label: "input", config: { seed: {} } },
+          },
+          {
+            id: "end",
+            type: "loom",
+            position: { x: 460, y: 180 },
+            data: { type: "output", label: "output", config: {} },
+          },
+        ] as LoomDoc["nodes"],
+        edges: [{ id: "start-end", source: "start", target: "end" }],
+      };
+      get().loadDocument(doc);
+      set({ input: "{}\n" });
+    },
+
     loadDocument: (doc) => {
       nodeSeq = doc.nodes.length;
+      // A document without an id is new to this browser, so it gets one and starts its
+      // own run history rather than inheriting whatever shared these node ids.
+      set({ docId: doc.id ?? crypto.randomUUID() });
       set({
         ...doc,
+        docId: doc.id ?? get().docId,
         selectedId: null,
         steps: [],
         currentStep: null,
@@ -245,6 +286,7 @@ export const useStore = create<Store>((set, get) => {
         error: null,
       });
       persist();
+      get().refreshRuns();
     },
     rename: (name) => {
       set({ name });
@@ -278,7 +320,11 @@ export const useStore = create<Store>((set, get) => {
       try {
         begin(
           execute(
-            toGraph(nodes, edges, { name, version }),
+            toGraph(nodes, edges, {
+              name,
+              version,
+              maxSteps: readSettings().maxSteps,
+            }),
             initialState,
             context(),
           ),
@@ -314,7 +360,11 @@ export const useStore = create<Store>((set, get) => {
         snapshots: steps.map((s) => s.stateBefore),
         status: "done",
       };
-      const graph = toGraph(nodes, edges, { name, version });
+      const graph = toGraph(nodes, edges, {
+        name,
+        version,
+        maxSteps: readSettings().maxSteps,
+      });
       try {
         begin(
           replayFrom(prior, step, context(), graph, edit),
@@ -329,6 +379,9 @@ export const useStore = create<Store>((set, get) => {
     inspect: (currentStep) => set({ currentStep }),
 
     runs: [],
-    refreshRuns: async () => set({ runs: await loadRuns() }),
+    refreshRuns: async () => {
+      const all = await loadRuns();
+      set({ runs: all.filter((r) => r.graphId === get().docId) });
+    },
   };
 });
