@@ -114,6 +114,7 @@ export function LoomNodeView({ id, data, selected }: NodeProps<LoomNode>) {
               : `Break before ${data.label}`
           }
           aria-pressed={armed}
+          data-tour="breakpoint"
           title={armed ? "Clear breakpoint" : "Break before this node"}
           onClick={(e) => {
             e.stopPropagation();

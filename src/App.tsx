@@ -18,6 +18,7 @@ import { NODE_TYPES, type LoomDoc } from "./lib/graph.ts";
 import { download } from "./lib/persist.ts";
 import { Link } from "./router.tsx";
 import { SettingsDialog } from "./SettingsDialog.tsx";
+import { hasSeenTour, Walkthrough } from "./Walkthrough.tsx";
 import { readSettings } from "./lib/settings.ts";
 import { useStore, type Mode, type RunStatus } from "./store.ts";
 import {
@@ -85,11 +86,30 @@ export default function App() {
   const [railOpen, setRailOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [confirmNew, setConfirmNew] = useState(false);
+  const [tour, setTour] = useState(false);
   const panel = useResizablePanel("agentloom.panelWidth", 400, 320, 760);
 
   useEffect(() => {
     refreshRuns();
   }, [refreshRuns]);
+
+  // First visit only. Waits a beat so the canvas has laid out before anything is
+  // pointed at, and never runs for someone who has already been shown it.
+  useEffect(() => {
+    if (hasSeenTour()) return;
+    const timer = setTimeout(() => setTour(true), 650);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Preferences asks for it by name rather than reaching into this component.
+  useEffect(() => {
+    const replay = () => {
+      setSettingsOpen(false);
+      setTour(true);
+    };
+    window.addEventListener("agentloom:tour", replay);
+    return () => window.removeEventListener("agentloom:tour", replay);
+  }, []);
 
   return (
     <div className="flex h-full flex-col bg-surface">
@@ -115,6 +135,7 @@ export default function App() {
         />
 
         <nav
+          data-tour="modes"
           className="flex gap-0.5 rounded-lg border border-line bg-surface p-0.5"
           aria-label="Mode"
         >
@@ -223,6 +244,7 @@ export default function App() {
             onClick={() => setSettingsOpen(true)}
             aria-label="Preferences"
             title="Preferences"
+            data-tour="settings"
             className="rounded-md border border-line bg-raised p-1.5 text-text-dim transition-colors hover:border-line-strong hover:text-text"
           >
             <Settings size={14} aria-hidden />
@@ -234,6 +256,8 @@ export default function App() {
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
       />
+
+      {tour && <Walkthrough onDone={() => setTour(false)} />}
 
       <ConfirmDialog
         open={confirmNew}
@@ -250,6 +274,7 @@ export default function App() {
       <main className="flex min-h-0 flex-1">
         {mode === "build" && (
           <aside
+            data-tour="rail"
             className={`flex shrink-0 flex-col border-r border-line bg-panel transition-[width] duration-150 ${
               railOpen ? "w-44" : "w-[52px]"
             }`}
@@ -302,12 +327,13 @@ export default function App() {
           <AnalyzePanel />
         ) : (
           <>
-            <div className="min-w-0 flex-1">
+            <div data-tour="canvas" className="min-w-0 flex-1">
               <Canvas />
             </div>
             {/* The handle lives on the aside, not inside the scroller, or the scroll
                 container clips it and the drag falls through to the canvas. */}
             <aside
+              data-tour="inspector"
               className="relative flex shrink-0 flex-col border-l border-line bg-panel"
               style={{ width: panel.width }}
             >
