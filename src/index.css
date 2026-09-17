@@ -1,0 +1,126 @@
+@import 'tailwindcss';
+@import '@xyflow/react/dist/style.css';
+
+@theme {
+  /* Cold instrument ink. The canvas is the deepest plane so the graph reads as the
+     live surface and the chrome recedes around it. */
+  --color-ink-900: #0b0e14;
+  --color-ink-800: #111620;
+  --color-ink-700: #171d29;
+  --color-ink-600: #1e2635;
+  --color-line: #232b3a;
+  --color-line-bright: #313c50;
+
+  --color-text: #dce3ed;
+  --color-text-dim: #8794a8;
+  --color-text-faint: #5a6577;
+
+  /* State colors. Nothing in this UI is tinted unless the tint means something. */
+  --color-live: #4ade80;
+  --color-halt: #f43f5e;
+  --color-pick: #60a5fa;
+
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1.45;
+  --text-meta: 0.75rem;
+  --text-meta--line-height: 1.5;
+  --text-ui: 0.8125rem;
+  --text-ui--line-height: 1.5;
+  --text-title: 0.9375rem;
+  --text-title--line-height: 1.4;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-ink-900);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'cv05' 1;
+}
+
+/* Tabular numerals everywhere data is compared down a column. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-pick);
+  outline-offset: 1px;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-pick) 35%, transparent);
+}
+
+/* Scrollbars, so panels do not grow a light-mode gutter. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-bright) transparent;
+}
+
+.react-flow__edge-path {
+  stroke: var(--color-line-bright);
+  stroke-width: 1.5;
+}
+.react-flow__edge.traversed .react-flow__edge-path {
+  stroke: var(--color-live);
+  stroke-width: 2.25;
+}
+.react-flow__edge-text {
+  fill: var(--color-text-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+.react-flow__edge.traversed .react-flow__edge-text {
+  fill: var(--color-live);
+}
+.react-flow__edge-textbg {
+  fill: var(--color-ink-900);
+}
+.react-flow__handle {
+  width: 7px;
+  height: 7px;
+  background: var(--color-ink-600);
+  border: 1px solid var(--color-line-bright);
+}
+.react-flow__handle:hover {
+  background: var(--color-pick);
+  border-color: var(--color-pick);
+}
+.react-flow__attribution {
+  background: transparent;
+  color: var(--color-text-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
