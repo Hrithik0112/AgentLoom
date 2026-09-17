@@ -12,6 +12,7 @@ import { Link } from "../router.tsx";
 import { ThemeToggle } from "../ui.tsx";
 import { LiveRun } from "./LiveRun.tsx";
 
+const AsciiLoom = lazy(() => import("./AsciiLoom.tsx"));
 const LoomField = lazy(() => import("./LoomField.tsx"));
 
 const REPO = "https://github.com/Hrithik0112/AgentLoom";
@@ -116,40 +117,55 @@ export default function Landing() {
 
       <main className="mx-auto max-w-6xl px-6">
         <section className="pt-16 pb-12">
-          <h1 className="m-0 max-w-3xl text-h1 font-semibold tracking-[-0.025em] text-text">
-            Your agent answered wrong at step 12. Which of{" "}
-            <AnnotatedText
-              variant="underline"
-              color="text-halt"
-              delay={0.35}
-              duration={0.9}
-              className="whitespace-nowrap"
-            >
-              the other eleven
-            </AnnotatedText>{" "}
-            broke it?
-          </h1>
-          <p className="mt-6 max-w-[58ch] text-lede text-text-dim">
-            AgentLoom is a debugger for AI agent workflows. Step through a run,
-            read the state at every node, change it mid flight, and replay from
-            that point without paying again for the steps in front of it.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link
-              to="/app"
-              className="rounded-lg border border-live/40 bg-live/12 px-4 py-2 text-ui font-medium text-live transition-colors hover:bg-live/20"
-            >
-              Open the debugger
-            </Link>
-            <a
-              href={REPO}
-              className="rounded-lg border border-line bg-raised px-4 py-2 text-ui text-text transition-colors hover:border-line-strong hover:bg-elevated"
-            >
-              Read the source
-            </a>
-            <span className="text-meta text-text-faint">
-              No sign up. No API key to look around.
-            </span>
+          <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)]">
+            <div>
+              <h1 className="m-0 max-w-3xl text-h1 font-semibold tracking-[-0.025em] text-text">
+                Your agent answered wrong at step 12. Which of{" "}
+                <AnnotatedText
+                  variant="underline"
+                  color="text-halt"
+                  delay={0.35}
+                  duration={0.9}
+                  className="whitespace-nowrap"
+                >
+                  the other eleven
+                </AnnotatedText>{" "}
+                broke it?
+              </h1>
+              <p className="mt-6 max-w-[58ch] text-lede text-text-dim">
+                AgentLoom is a debugger for AI agent workflows. Step through a
+                run, read the state at every node, change it mid flight, and
+                replay from that point without paying again for the steps in
+                front of it.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <Link
+                  to="/app"
+                  className="rounded-lg border border-live/40 bg-live/12 px-4 py-2 text-ui font-medium text-live transition-colors hover:bg-live/20"
+                >
+                  Open the debugger
+                </Link>
+                <a
+                  href={REPO}
+                  className="rounded-lg border border-line bg-raised px-4 py-2 text-ui text-text transition-colors hover:border-line-strong hover:bg-elevated"
+                >
+                  Read the source
+                </a>
+                <span className="text-meta text-text-faint">
+                  No sign up. No API key to look around.
+                </span>
+              </div>
+            </div>
+
+            <div className="hidden justify-self-center lg:block">
+              <Suspense
+                fallback={
+                  <div className="aspect-square w-full max-w-[340px]" />
+                }
+              >
+                <AsciiLoom />
+              </Suspense>
+            </div>
           </div>
 
           <div className="mt-12">

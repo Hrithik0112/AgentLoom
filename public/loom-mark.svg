@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">
+  <rect width="320" height="320" fill="#000000"/>
+  <g stroke="#ffffff" stroke-linecap="round" fill="none">
+    <!-- warp: the threads held under tension -->
+    <g stroke-width="14" opacity="0.55">
+      <path d="M70 34v252M160 34v252M250 34v252"/>
+    </g>
+    <!-- weft: the passes that bind them -->
+    <g stroke-width="22">
+      <path d="M26 118h268M26 202h268"/>
+    </g>
+  </g>
+</svg>
