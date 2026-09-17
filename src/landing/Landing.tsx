@@ -73,7 +73,7 @@ function Command({ children }: { children: string }) {
 
 export default function Landing() {
   return (
-    <div className="min-h-full bg-surface">
+    <div className="min-h-full bg-surface font-grotesk">
       <header className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-5">
         <Mark size={20} />
         <span className="text-title font-semibold tracking-tight text-text">

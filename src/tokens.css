@@ -134,6 +134,11 @@
   --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
 
+  /* The landing page speaks in a different voice from the tool. Bricolage is a variable
+     grotesk with optical sizing, so the headline and the body of the same family do not
+     look like the same size shouted. */
+  --font-grotesk: 'Bricolage Grotesque', 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+
   /* Interface sizes are fixed in rem, so they follow the browser's font setting but never
      the viewport. A tool's chrome should not resize as you widen the window. */
   --text-micro: 0.6875rem;

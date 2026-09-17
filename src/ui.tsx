@@ -187,12 +187,12 @@ export function ThemeToggle() {
 }
 
 /**
- * The mark: a weft thread passing over, under, then over three warp threads.
+ * The mark: an eye inside viewfinder brackets.
  *
- * That over-under alternation is what makes a weave a weave rather than a grid, so the
- * thread is drawn in three pieces: the dip behind the warp first, then the warp, then the
- * two crests on top. The passing thread carries the live color because it is the one
- * doing the work, which is the same thing the product shows you.
+ * The same shape the hero renders in ASCII, so the product has one idea rather than two.
+ * An agent runs where you cannot see it and this tool watches it, which is what the
+ * brackets and the pupil say together. The pupil carries the live color because that is
+ * the thing actually being observed.
  */
 export function Mark({ size = 20 }: { size?: number }) {
   return (
@@ -202,30 +202,22 @@ export function Mark({ size = 20 }: { size?: number }) {
       viewBox="0 0 24 24"
       fill="none"
       aria-hidden
-      className="shrink-0 overflow-visible"
+      className="shrink-0"
     >
-      {/* the dip, drawn first so the warp covers it */}
       <path
-        d="M8 12.6 Q12 17 16 12.6"
-        stroke="var(--color-live)"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-      />
-      {/* warp under tension */}
-      <path
-        d="M5 3.5v17M12 3.5v17M19 3.5v17"
+        d="M2.6 7V2.6H7M17 2.6h4.4V7M21.4 17v4.4H17M7 21.4H2.6V17"
         stroke="currentColor"
-        strokeWidth="2.2"
+        strokeWidth="1.7"
         strokeLinecap="round"
         opacity="0.45"
       />
-      {/* the crests, back on top */}
       <path
-        d="M2.5 12.6 Q5 8.6 8 12.6M16 12.6 Q19 8.6 21.5 12.6"
-        stroke="var(--color-live)"
-        strokeWidth="2.2"
-        strokeLinecap="round"
+        d="M4.9 12Q12 6.7 19.1 12Q12 17.3 4.9 12Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
       />
+      <circle cx="12" cy="12" r="2.5" fill="var(--color-live)" />
     </svg>
   );
 }
