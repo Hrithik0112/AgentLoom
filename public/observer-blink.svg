@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">
+  <rect width="320" height="320" fill="#000000"/>
+  <g stroke="#ffffff" fill="none" stroke-linecap="square">
+    <g stroke-width="13">
+      <path d="M30 78V30h48M242 30h48v48M290 242v48h-48M78 290H30v-48"/>
+    </g>
+    <!-- the lid: the same span as the open aperture, collapsed onto its own axis -->
+    <path d="M74 160 Q160 178 246 160" stroke-width="16" stroke-linecap="round"/>
+  </g>
+</svg>
