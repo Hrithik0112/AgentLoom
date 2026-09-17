@@ -14,8 +14,16 @@ import { DebugPanel } from "./debug/DebugPanel.tsx";
 import { EXAMPLES } from "./examples.ts";
 import { NODE_TYPES, type LoomDoc } from "./lib/graph.ts";
 import { download } from "./lib/persist.ts";
+import { Link } from "./router.tsx";
 import { useStore, type Mode, type RunStatus } from "./store.ts";
-import { control, DragHandle, quietButton, useResizablePanel } from "./ui.tsx";
+import {
+  control,
+  DragHandle,
+  quietButton,
+  Mark,
+  ThemeToggle,
+  useResizablePanel,
+} from "./ui.tsx";
 
 const MODES: Mode[] = ["build", "debug", "analyze"];
 
@@ -43,35 +51,13 @@ const NODE_CODE: Record<string, string> = {
 
 const STATUS_COLOR: Record<RunStatus, string> = {
   idle: "bg-text-faint",
-  running: "bg-amber-400",
+  running: "bg-warn",
   paused: "bg-pick",
   "awaiting-approval": "bg-halt",
   done: "bg-live",
   error: "bg-halt",
   halted: "bg-halt",
 };
-
-function Mark() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 18 18"
-      aria-hidden
-      className="shrink-0"
-    >
-      <g
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        fill="none"
-      >
-        <path d="M3 2v14M9 2v14M15 2v14" opacity="0.45" />
-        <path d="M1.5 6.5h15M1.5 11.5h15" />
-      </g>
-    </svg>
-  );
-}
 
 export default function App() {
   const {
@@ -101,14 +87,18 @@ export default function App() {
   }, [refreshRuns]);
 
   return (
-    <div className="flex h-full flex-col bg-ink-900">
-      <header className="flex h-14 shrink-0 items-center gap-4 border-b border-line bg-ink-800 px-4">
-        <div className="flex items-center gap-2.5 text-text">
+    <div className="flex h-full flex-col bg-surface">
+      <header className="flex h-14 shrink-0 items-center gap-4 border-b border-line bg-panel px-4">
+        <Link
+          to="/"
+          title="Back to the landing page"
+          className="flex items-center gap-2.5 text-text transition-opacity hover:opacity-75"
+        >
           <Mark />
           <span className="text-title font-semibold tracking-tight">
             agentloom
           </span>
-        </div>
+        </Link>
 
         <div className="h-5 w-px bg-line" />
 
@@ -120,7 +110,7 @@ export default function App() {
         />
 
         <nav
-          className="flex gap-0.5 rounded-lg border border-line bg-ink-900 p-0.5"
+          className="flex gap-0.5 rounded-lg border border-line bg-surface p-0.5"
           aria-label="Mode"
         >
           {MODES.map((m) => (
@@ -130,7 +120,7 @@ export default function App() {
               aria-current={mode === m}
               className={`rounded-[5px] px-3 py-1 text-meta capitalize transition-colors ${
                 mode === m
-                  ? "bg-ink-600 text-text"
+                  ? "bg-elevated text-text"
                   : "text-text-dim hover:text-text"
               }`}
             >
@@ -142,7 +132,7 @@ export default function App() {
         <div className="ml-auto flex items-center gap-1">
           <select
             aria-label="Load an example workflow"
-            className="rounded-md border border-line bg-ink-700 px-2.5 py-1.5 text-meta text-text-dim transition-colors hover:border-line-bright hover:text-text"
+            className="rounded-md border border-line bg-raised px-2.5 py-1.5 text-meta text-text-dim transition-colors hover:border-line-strong hover:text-text"
             value=""
             onChange={(e) => {
               const example = EXAMPLES.find((x) => x.name === e.target.value);
@@ -206,18 +196,20 @@ export default function App() {
             aria-expanded={keyOpen}
             className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-meta transition-colors ${
               apiKey
-                ? "border-line bg-ink-700 text-text-dim hover:text-text"
-                : "border-amber-400/30 bg-amber-400/10 text-amber-200/90 hover:bg-amber-400/15"
+                ? "border-line bg-raised text-text-dim hover:text-text"
+                : "border-warn/35 bg-warn/10 text-warn hover:bg-warn/20"
             }`}
           >
             <KeyRound size={13} aria-hidden />
             {apiKey ? "Live model" : "Demo model"}
           </button>
+
+          <ThemeToggle />
         </div>
       </header>
 
       {keyOpen && (
-        <div className="flex shrink-0 items-center gap-3 border-b border-line bg-ink-800 px-4 py-3">
+        <div className="flex shrink-0 items-center gap-3 border-b border-line bg-panel px-4 py-3">
           <input
             type="password"
             aria-label="Anthropic API key"
@@ -237,7 +229,7 @@ export default function App() {
       <main className="flex min-h-0 flex-1">
         {mode === "build" && (
           <aside
-            className={`flex shrink-0 flex-col border-r border-line bg-ink-800 transition-[width] duration-150 ${
+            className={`flex shrink-0 flex-col border-r border-line bg-panel transition-[width] duration-150 ${
               railOpen ? "w-44" : "w-[52px]"
             }`}
           >
@@ -252,7 +244,7 @@ export default function App() {
                   key={t}
                   onClick={() => addNode(t)}
                   title={`Add a ${NODE_LABEL[t].toLowerCase()} node`}
-                  className={`flex w-full items-center rounded-md py-1.5 text-ui text-text-dim transition-colors hover:bg-ink-700 hover:text-text ${
+                  className={`flex w-full items-center rounded-md py-1.5 text-ui text-text-dim transition-colors hover:bg-raised hover:text-text ${
                     railOpen ? "gap-2.5 px-2" : "flex-col gap-1 px-0"
                   }`}
                 >
@@ -295,7 +287,7 @@ export default function App() {
             {/* The handle lives on the aside, not inside the scroller, or the scroll
                 container clips it and the drag falls through to the canvas. */}
             <aside
-              className="relative flex shrink-0 flex-col border-l border-line bg-ink-800"
+              className="relative flex shrink-0 flex-col border-l border-line bg-panel"
               style={{ width: panel.width }}
             >
               <DragHandle {...panel} />

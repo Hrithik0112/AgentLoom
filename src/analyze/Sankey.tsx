@@ -114,7 +114,7 @@ export function Sankey({ runs }: { runs: RunRecord[] }) {
             fill="var(--color-text)"
             fontSize={11}
             fontFamily="var(--font-mono)"
-            stroke="var(--color-ink-900)"
+            stroke="var(--color-surface)"
             strokeWidth={3.5}
             paintOrder="stroke"
           >

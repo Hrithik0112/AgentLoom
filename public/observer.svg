@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">
+  <rect width="320" height="320" fill="#000000"/>
+  <g stroke="#ffffff" fill="none" stroke-linecap="square">
+    <!-- viewfinder brackets: straight thick runs are the only fine detail that
+         survives being resampled down to a character grid -->
+    <g stroke-width="13">
+      <path d="M30 78V30h48M242 30h48v48M290 242v48h-48M78 290H30v-48"/>
+    </g>
+    <!-- the aperture -->
+    <path d="M74 160 Q160 92 246 160 Q160 228 74 160 Z" stroke-width="16"/>
+  </g>
+  <circle cx="160" cy="160" r="52" fill="#ffffff"/>
+  <circle cx="160" cy="160" r="27" fill="#000000"/>
+</svg>

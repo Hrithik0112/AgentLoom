@@ -1,27 +1,146 @@
 @import 'tailwindcss';
 
-@theme {
-  /* Cold instrument ink. The canvas is the deepest plane so the graph reads as the
-     live surface and the chrome recedes around it. */
-  --color-ink-900: #0b0e14;
-  --color-ink-800: #111620;
-  --color-ink-700: #171d29;
-  --color-ink-600: #1e2635;
-  --color-line: #232b3a;
-  --color-line-bright: #313c50;
+/*
+  Two themes, one instrument.
 
-  --color-text: #dce3ed;
-  --color-text-dim: #8794a8;
-  --color-text-faint: #5a6577;
+  Dark is the instrument face: cold ink, the canvas deeper than the chrome around it.
+  Light is not that inverted. It is the printed schematic, warm paper with ink text, and
+  the state colors are re-picked rather than reused, because #4ade80 on paper is unreadable.
 
-  /* State colors. Nothing in this UI is tinted unless the tint means something. */
-  --color-live: #4ade80;
-  --color-halt: #f43f5e;
-  --color-pick: #60a5fa;
+  Default with no attribute follows the system. data-theme pins it either way.
+*/
+
+:root {
+  --c-surface: #0b0e14;
+  --c-panel: #111620;
+  --c-raised: #171d29;
+  --c-elevated: #1e2635;
+  --c-line: #232b3a;
+  --c-line-strong: #313c50;
+
+  --c-text: #dce3ed;
+  --c-text-dim: #8794a8;
+  --c-text-faint: #5a6577;
+
+  --c-live: #4ade80;
+  --c-halt: #f43f5e;
+  --c-pick: #60a5fa;
+  --c-warn: #fbbf24;
+
+  --c-diff-add-text: #a7f3d0;
+  --c-diff-del-text: #fecdd3;
+
+  --c-type-input: #38bdf8;
+  --c-type-llm: #a78bfa;
+  --c-type-tool: #fbbf24;
+  --c-type-condition: #4ade80;
+  --c-type-loop: #22d3ee;
+  --c-type-approval: #fb7185;
+  --c-type-output: #94a3b8;
+
+  --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.4);
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --c-surface: #f6f5f2;
+  --c-panel: #fdfdfc;
+  --c-raised: #ffffff;
+  --c-elevated: #edebe6;
+  --c-line: #e2dfd8;
+  --c-line-strong: #c4c0b6;
+
+  --c-text: #14181f;
+  --c-text-dim: #59616e;
+  --c-text-faint: #8a919c;
+
+  --c-live: #0f7a43;
+  --c-halt: #b32340;
+  --c-pick: #1f6feb;
+  --c-warn: #9a5b06;
+
+  --c-diff-add-text: #08543a;
+  --c-diff-del-text: #86132c;
+
+  --c-type-input: #0369a1;
+  --c-type-llm: #6d28d9;
+  --c-type-tool: #a16207;
+  --c-type-condition: #0f7a43;
+  --c-type-loop: #0e7490;
+  --c-type-approval: #be123c;
+  --c-type-output: #64748b;
+
+  --shadow-panel: 0 1px 2px rgb(20 24 31 / 0.06);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --c-surface: #f6f5f2;
+    --c-panel: #fdfdfc;
+    --c-raised: #ffffff;
+    --c-elevated: #edebe6;
+    --c-line: #e2dfd8;
+    --c-line-strong: #c4c0b6;
+
+    --c-text: #14181f;
+    --c-text-dim: #59616e;
+    --c-text-faint: #8a919c;
+
+    --c-live: #0f7a43;
+    --c-halt: #b32340;
+    --c-pick: #1f6feb;
+    --c-warn: #9a5b06;
+
+    --c-diff-add-text: #08543a;
+    --c-diff-del-text: #86132c;
+
+    --c-type-input: #0369a1;
+    --c-type-llm: #6d28d9;
+    --c-type-tool: #a16207;
+    --c-type-condition: #0f7a43;
+    --c-type-loop: #0e7490;
+    --c-type-approval: #be123c;
+    --c-type-output: #64748b;
+
+    --shadow-panel: 0 1px 2px rgb(20 24 31 / 0.06);
+    color-scheme: light;
+  }
+}
+
+/* `inline` makes Tailwind emit var() references rather than copying the values, which is
+   what lets a utility class follow the theme at runtime. */
+@theme inline {
+  --color-surface: var(--c-surface);
+  --color-panel: var(--c-panel);
+  --color-raised: var(--c-raised);
+  --color-elevated: var(--c-elevated);
+  --color-line: var(--c-line);
+  --color-line-strong: var(--c-line-strong);
+
+  --color-text: var(--c-text);
+  --color-text-dim: var(--c-text-dim);
+  --color-text-faint: var(--c-text-faint);
+
+  --color-live: var(--c-live);
+  --color-halt: var(--c-halt);
+  --color-pick: var(--c-pick);
+  --color-warn: var(--c-warn);
+  --color-model: var(--c-type-llm);
+
+  --color-diff-add: var(--c-diff-add-text);
+  --color-diff-del: var(--c-diff-del-text);
 
   --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
 
+  /* The landing page speaks in a different voice from the tool. Bricolage is a variable
+     grotesk with optical sizing, so the headline and the body of the same family do not
+     look like the same size shouted. */
+  --font-grotesk: 'Bricolage Grotesque', 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+
+  /* Interface sizes are fixed in rem, so they follow the browser's font setting but never
+     the viewport. A tool's chrome should not resize as you widen the window. */
   --text-micro: 0.6875rem;
   --text-micro--line-height: 1.45;
   --text-meta: 0.75rem;
@@ -30,10 +149,16 @@
   --text-ui--line-height: 1.5;
   --text-title: 0.9375rem;
   --text-title--line-height: 1.4;
-}
 
-:root {
-  color-scheme: dark;
+  /* Editorial sizes are fluid, because the landing page is read at any width. */
+  --text-lede: clamp(0.9375rem, 0.85rem + 0.4vw, 1.0625rem);
+  --text-lede--line-height: 1.65;
+  --text-h3: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  --text-h3--line-height: 1.35;
+  --text-h2: clamp(1.5rem, 1.15rem + 1.5vw, 2rem);
+  --text-h2--line-height: 1.2;
+  --text-h1: clamp(2.05rem, 1.1rem + 4vw, 3.4rem);
+  --text-h1--line-height: 1.16;
 }
 
 html,
@@ -44,13 +169,16 @@ body,
 
 body {
   margin: 0;
-  background: var(--color-ink-900);
+  background: var(--color-surface);
   color: var(--color-text);
   font-family: var(--font-sans);
-  font-size: 0.8125rem;
+  font-size: var(--text-ui);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   font-feature-settings: 'cv05' 1;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
 }
 
 /* Tabular numerals everywhere data is compared down a column. */
@@ -72,12 +200,19 @@ button {
 }
 
 ::selection {
-  background: color-mix(in oklab, var(--color-pick) 35%, transparent);
+  background: color-mix(in oklab, var(--color-pick) 30%, transparent);
 }
 
-/* Scrollbars, so panels do not grow a light-mode gutter. */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-line-bright) transparent;
+  scrollbar-color: var(--color-line-strong) transparent;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

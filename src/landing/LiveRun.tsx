@@ -117,12 +117,15 @@ const H = 40;
 const VIEW_W = 708;
 const VIEW_H = 262;
 
+/** Lets the headline annotation finish drawing before the run starts moving. */
+const START_DELAY = 950;
+
 const TYPE_COLOR: Record<string, string> = {
-  input: "#38bdf8",
-  llm: "#a78bfa",
-  condition: "#4ade80",
-  approval: "#fb7185",
-  output: "#94a3b8",
+  input: "var(--c-type-input)",
+  llm: "var(--c-type-llm)",
+  condition: "var(--c-type-condition)",
+  approval: "var(--c-type-approval)",
+  output: "var(--c-type-output)",
 };
 
 /** Same glyphs the canvas uses, so the hero and the tool read as one product. */
@@ -193,7 +196,7 @@ export function LiveRun() {
             () => {
               if (!cancelled) setSteps(collected.slice(0, i + 1));
             },
-            260 + i * 900,
+            START_DELAY + i * 900,
           ),
         );
       });
@@ -202,7 +205,7 @@ export function LiveRun() {
           () => {
             if (!cancelled) setPass((p) => p + 1);
           },
-          260 + collected.length * 900 + 2600,
+          START_DELAY + collected.length * 900 + 2600,
         ),
       );
     };
@@ -228,7 +231,7 @@ export function LiveRun() {
     : [];
 
   return (
-    <figure className="m-0 overflow-hidden rounded-xl border border-line bg-ink-800">
+    <figure className="m-0 overflow-hidden rounded-xl border border-line bg-panel">
       <figcaption className="flex items-center gap-2.5 border-b border-line px-4 py-2.5">
         <span className="relative flex h-2 w-2">
           {!paused && !reducedMotion && (
@@ -248,7 +251,7 @@ export function LiveRun() {
       </figcaption>
 
       <div className="grid gap-px bg-line lg:grid-cols-[1.35fr_1fr]">
-        <div className="flex items-center bg-ink-900 p-4">
+        <div className="flex items-center bg-surface p-4">
           <svg
             viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
             className="w-full"
@@ -263,7 +266,7 @@ export function LiveRun() {
                   d={edgePath(e.from, e.to)}
                   fill="none"
                   stroke={
-                    hot ? "var(--color-live)" : "var(--color-line-bright)"
+                    hot ? "var(--color-live)" : "var(--color-line-strong)"
                   }
                   strokeWidth={hot ? 2 : 1.25}
                   className="transition-all duration-300"
@@ -287,12 +290,12 @@ export function LiveRun() {
                     width={W}
                     height={H}
                     rx={7}
-                    fill="var(--color-ink-700)"
+                    fill="var(--color-panel)"
                     stroke={
                       isNow
                         ? "var(--color-live)"
                         : seen
-                          ? "var(--color-line-bright)"
+                          ? "var(--color-line-strong)"
                           : "var(--color-line)"
                     }
                     strokeWidth={isNow ? 2 : 1}
@@ -326,7 +329,7 @@ export function LiveRun() {
           </svg>
         </div>
 
-        <div className="flex flex-col bg-ink-800">
+        <div className="flex flex-col bg-panel">
           <ol className="m-0 list-none p-0">
             {GRAPH.nodes.slice(0, 5).map((_, i) => {
               const s = steps[i];
@@ -335,7 +338,7 @@ export function LiveRun() {
                   key={i}
                   className={`flex h-9 items-center gap-2.5 px-4 text-ui transition-colors ${
                     s && i === steps.length - 1
-                      ? "bg-ink-600 text-text"
+                      ? "bg-elevated text-text"
                       : "text-text-dim"
                   }`}
                 >
@@ -371,7 +374,7 @@ export function LiveRun() {
                 {changed.map((k) => (
                   <p
                     key={k}
-                    className="m-0 line-clamp-3 rounded-md border-l-2 border-live/60 bg-live/10 px-2.5 py-1.5 font-mono text-meta text-emerald-200"
+                    className="m-0 line-clamp-3 rounded-md border-l-2 border-live/60 bg-live/10 px-2.5 py-1.5 font-mono text-meta text-diff-add"
                   >
                     {show(current.stateAfter[k])}
                   </p>

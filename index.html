@@ -8,15 +8,24 @@
       name="description"
       content="Step through an agent workflow, read the state at every node, change it mid run, and replay from that point without re-paying for the steps in front of it."
     />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#0b0e14" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;450;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;450;500;600&display=swap"
       rel="stylesheet"
     />
+    <script>
+      // Before first paint, so a light-mode visitor never sees a dark flash.
+      try {
+        var t = localStorage.getItem('agentloom.theme')
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t)
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/landing/main.tsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
