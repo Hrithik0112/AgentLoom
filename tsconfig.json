@@ -9,6 +9,7 @@
     "noEmit": true,
     "skipLibCheck": true,
     "types": ["node", "vite/client"],
+    "paths": { "@/*": ["./src/*"] },
     "verbatimModuleSyntax": true,
     "allowImportingTsExtensions": true
   },

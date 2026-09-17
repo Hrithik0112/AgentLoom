@@ -1,17 +1,39 @@
-import { useEffect, useState } from 'react'
-import type { State, StepEvent } from '../../packages/engine/index.ts'
-import { TypeDot } from '../canvas/LoomNodeView.tsx'
-import { ms, usd } from '../lib/stats.ts'
-import { useStore } from '../store.ts'
-import { button, control, Field } from '../ui.tsx'
+import {
+  Ban,
+  Check,
+  FastForward,
+  History,
+  Play,
+  Square,
+  StepForward,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import type { State, StepEvent } from "../../packages/engine/index.ts";
+import { TypeIcon } from "../canvas/LoomNodeView.tsx";
+import { ms, usd } from "../lib/stats.ts";
+import { useStore } from "../store.ts";
+import { button, control, Field } from "../ui.tsx";
 
-const show = (v: unknown) => (typeof v === 'string' ? v : JSON.stringify(v, null, 2))
+const show = (v: unknown) =>
+  typeof v === "string" ? v : JSON.stringify(v, null, 2);
 
 /** What this step changed. The diff is the question you are actually asking, not the dump. */
 function Diff({ step }: { step: StepEvent }) {
-  const keys = [...new Set([...Object.keys(step.stateBefore), ...Object.keys(step.stateAfter)])]
-  const changed = keys.filter((k) => show(step.stateBefore[k]) !== show(step.stateAfter[k]))
-  if (!changed.length) return <p className="text-meta text-text-faint">This step left the state unchanged.</p>
+  const keys = [
+    ...new Set([
+      ...Object.keys(step.stateBefore),
+      ...Object.keys(step.stateAfter),
+    ]),
+  ];
+  const changed = keys.filter(
+    (k) => show(step.stateBefore[k]) !== show(step.stateAfter[k]),
+  );
+  if (!changed.length)
+    return (
+      <p className="text-meta text-text-faint">
+        This step left the state unchanged.
+      </p>
+    );
   return (
     <div className="space-y-3">
       {changed.map((k) => (
@@ -28,21 +50,21 @@ function Diff({ step }: { step: StepEvent }) {
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 function Inspector({ step }: { step: StepEvent }) {
-  const [tab, setTab] = useState<'changed' | 'state' | 'prompt'>('changed')
-  const rewindTo = useStore((s) => s.rewindTo)
-  const [edit, setEdit] = useState('')
+  const [tab, setTab] = useState<"changed" | "state" | "prompt">("changed");
+  const rewindTo = useStore((s) => s.rewindTo);
+  const [edit, setEdit] = useState("");
 
-  useEffect(() => setTab('changed'), [step.step])
+  useEffect(() => setTab("changed"), [step.step]);
 
   const tabs = [
-    ['changed', 'What changed'],
-    ['state', 'Full state'],
-    ['prompt', 'Prompt sent'],
-  ] as const
+    ["changed", "What changed"],
+    ["state", "Full state"],
+    ["prompt", "Prompt sent"],
+  ] as const;
 
   return (
     <div className="space-y-4 border-t border-line p-4">
@@ -52,7 +74,9 @@ function Inspector({ step }: { step: StepEvent }) {
             key={id}
             onClick={() => setTab(id)}
             className={`rounded-md px-2.5 py-1 text-meta transition-colors ${
-              tab === id ? 'bg-ink-600 text-text' : 'text-text-dim hover:text-text'
+              tab === id
+                ? "bg-ink-600 text-text"
+                : "text-text-dim hover:text-text"
             }`}
           >
             {label}
@@ -69,15 +93,15 @@ function Inspector({ step }: { step: StepEvent }) {
         </div>
       )}
 
-      {tab === 'changed' && <Diff step={step} />}
+      {tab === "changed" && <Diff step={step} />}
 
-      {tab === 'state' && (
+      {tab === "state" && (
         <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-md bg-ink-900 p-3 font-mono text-meta text-text-dim">
           {JSON.stringify(step.stateAfter, null, 2)}
         </pre>
       )}
 
-      {tab === 'prompt' &&
+      {tab === "prompt" &&
         (step.meta?.prompt ? (
           <div className="space-y-3">
             {step.meta.system && (
@@ -91,7 +115,9 @@ function Inspector({ step }: { step: StepEvent }) {
             <div className="space-y-1">
               <div className="flex items-baseline gap-2">
                 <span className="text-meta text-text-faint">Sent to</span>
-                <span className="font-mono text-micro text-text-dim">{step.meta.model}</span>
+                <span className="font-mono text-micro text-text-dim">
+                  {step.meta.model}
+                </span>
               </div>
               <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words rounded-md bg-ink-900 p-3 font-mono text-meta text-sky-200">
                 {step.meta.prompt}
@@ -105,7 +131,9 @@ function Inspector({ step }: { step: StepEvent }) {
             </div>
           </div>
         ) : (
-          <p className="text-meta text-text-faint">This step did not call a model.</p>
+          <p className="text-meta text-text-faint">
+            This step did not call a model.
+          </p>
         ))}
 
       <div className="space-y-2 border-t border-line pt-4">
@@ -118,22 +146,23 @@ function Inspector({ step }: { step: StepEvent }) {
           />
         </Field>
         <button
-          className={button}
+          className={`${button} inline-flex items-center gap-1.5`}
           onClick={() => {
-            let patch: State = {}
+            let patch: State = {};
             try {
-              patch = edit.trim() ? JSON.parse(edit) : {}
+              patch = edit.trim() ? JSON.parse(edit) : {};
             } catch {
-              return
+              return;
             }
-            rewindTo(step.step, patch)
+            rewindTo(step.step, patch);
           }}
         >
+          <History size={13} aria-hidden />
           Replay from step {step.step}
         </button>
       </div>
     </div>
-  )
+  );
 }
 
 export function DebugPanel() {
@@ -152,13 +181,14 @@ export function DebugPanel() {
     editState,
     breakpoints,
     nodes,
-  } = useStore()
+  } = useStore();
 
-  const running = status === 'running'
-  const held = status === 'paused' || status === 'awaiting-approval'
-  const selected = currentStep !== null ? steps[currentStep] : undefined
-  const totalCost = steps.reduce((sum, s) => sum + (s.meta?.costUsd ?? 0), 0)
-  const typeOf = (id: string) => nodes.find((n) => n.id === id)?.data.type ?? 'output'
+  const running = status === "running";
+  const held = status === "paused" || status === "awaiting-approval";
+  const selected = currentStep !== null ? steps[currentStep] : undefined;
+  const totalCost = steps.reduce((sum, s) => sum + (s.meta?.costUsd ?? 0), 0);
+  const typeOf = (id: string) =>
+    nodes.find((n) => n.id === id)?.data.type ?? "output";
 
   return (
     <div className="flex h-full flex-col">
@@ -172,30 +202,36 @@ export function DebugPanel() {
         </Field>
 
         <div className="flex flex-wrap gap-1.5">
-          <button className={button} onClick={start} disabled={running}>
-            Run
-          </button>
-          <button className={button} onClick={stepOnce} disabled={running}>
-            Step
-          </button>
-          <button className={button} onClick={resume} disabled={!held}>
-            Continue
-          </button>
-          <button className={button} onClick={stop} disabled={status === 'idle'}>
-            Stop
-          </button>
+          {(
+            [
+              [Play, "Run", start, running],
+              [StepForward, "Step", stepOnce, running],
+              [FastForward, "Continue", resume, !held],
+              [Square, "Stop", stop, status === "idle"],
+            ] as const
+          ).map(([Icon, label, onClick, disabled]) => (
+            <button
+              key={label}
+              className={`${button} inline-flex items-center gap-1.5`}
+              onClick={onClick}
+              disabled={disabled}
+            >
+              <Icon size={13} aria-hidden />
+              {label}
+            </button>
+          ))}
         </div>
 
         <div className="tnum flex items-center gap-3 font-mono text-micro">
           <span
             className={
-              status === 'error' || status === 'halted'
-                ? 'text-halt'
+              status === "error" || status === "halted"
+                ? "text-halt"
                 : running
-                  ? 'text-amber-400'
-                  : status === 'done'
-                    ? 'text-live'
-                    : 'text-text-dim'
+                  ? "text-amber-400"
+                  : status === "done"
+                    ? "text-live"
+                    : "text-text-dim"
             }
           >
             {status}
@@ -205,7 +241,7 @@ export function DebugPanel() {
           </span>
           {breakpoints.length > 0 && (
             <span className="text-halt">
-              {breakpoints.length} breakpoint{breakpoints.length > 1 ? 's' : ''}
+              {breakpoints.length} breakpoint{breakpoints.length > 1 ? "s" : ""}
             </span>
           )}
         </div>
@@ -216,26 +252,30 @@ export function DebugPanel() {
           </div>
         )}
 
-        {status === 'awaiting-approval' && (
+        {status === "awaiting-approval" && (
           <div className="space-y-2.5 rounded-lg border border-halt/40 bg-halt/10 p-3">
-            <p className="text-ui text-rose-100">{selected?.meta?.response ?? 'This run is waiting on you.'}</p>
+            <p className="text-ui text-rose-100">
+              {selected?.meta?.response ?? "This run is waiting on you."}
+            </p>
             <div className="flex gap-1.5">
               <button
-                className={button}
+                className={`${button} inline-flex items-center gap-1.5`}
                 onClick={() => {
-                  editState({ approved: true })
-                  resume()
+                  editState({ approved: true });
+                  resume();
                 }}
               >
+                <Check size={13} aria-hidden />
                 Approve
               </button>
               <button
-                className={button}
+                className={`${button} inline-flex items-center gap-1.5`}
                 onClick={() => {
-                  editState({ approved: false })
-                  resume()
+                  editState({ approved: false });
+                  resume();
                 }}
               >
+                <Ban size={13} aria-hidden />
                 Reject
               </button>
             </div>
@@ -246,7 +286,8 @@ export function DebugPanel() {
       <div className="min-h-0 flex-1 overflow-y-auto border-t border-line">
         {steps.length === 0 ? (
           <p className="p-4 text-meta text-text-faint">
-            Run the workflow to see each step land here. Click a node's dot to break before it.
+            Run the workflow to see each step land here. Click a node's dot to
+            break before it.
           </p>
         ) : (
           <>
@@ -256,16 +297,24 @@ export function DebugPanel() {
                   key={s.step}
                   onClick={() => inspect(s.step)}
                   className={`flex w-full items-center gap-2.5 px-4 py-2 text-left transition-colors hover:bg-ink-700 ${
-                    currentStep === s.step ? 'bg-ink-600' : ''
+                    currentStep === s.step ? "bg-ink-600" : ""
                   }`}
                 >
                   <span className="tnum w-5 shrink-0 text-right font-mono text-micro text-text-faint">
                     {s.step}
                   </span>
-                  <TypeDot type={typeOf(s.nodeId)} size={6} />
-                  <span className="min-w-0 flex-1 truncate text-ui text-text">{s.label ?? s.nodeId}</span>
-                  {s.handle && <span className="font-mono text-micro text-live">{s.handle}</span>}
-                  {s.status === 'error' && <span className="text-micro text-halt">failed</span>}
+                  <TypeIcon type={typeOf(s.nodeId)} size={13} />
+                  <span className="min-w-0 flex-1 truncate text-ui text-text">
+                    {s.label ?? s.nodeId}
+                  </span>
+                  {s.handle && (
+                    <span className="font-mono text-micro text-live">
+                      {s.handle}
+                    </span>
+                  )}
+                  {s.status === "error" && (
+                    <span className="text-micro text-halt">failed</span>
+                  )}
                 </button>
               ))}
             </div>
@@ -274,5 +323,5 @@ export function DebugPanel() {
         )}
       </div>
     </div>
-  )
+  );
 }

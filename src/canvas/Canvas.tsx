@@ -1,29 +1,48 @@
-import { Background, Controls, MiniMap, ReactFlow, type Edge } from '@xyflow/react'
-import { useMemo } from 'react'
-import { useStore } from '../store.ts'
-import { LoomNodeView, TYPE_COLOR } from './LoomNodeView.tsx'
+import {
+  Background,
+  Controls,
+  MiniMap,
+  ReactFlow,
+  type Edge,
+} from "@xyflow/react";
+import { useMemo } from "react";
+import { useStore } from "../store.ts";
+import { LoomNodeView, TYPE_COLOR } from "./LoomNodeView.tsx";
 
-const nodeTypes = { loom: LoomNodeView }
+const nodeTypes = { loom: LoomNodeView };
 
 export function Canvas() {
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, select, steps } = useStore()
+  const {
+    nodes,
+    edges,
+    onNodesChange,
+    onEdgesChange,
+    onConnect,
+    select,
+    steps,
+  } = useStore();
 
   // Light up the edges this run actually traversed. Consecutive steps are, by definition,
   // one edge apart.
   const traversed = useMemo(() => {
-    const set = new Set<string>()
-    for (let i = 0; i < steps.length - 1; i++) set.add(`${steps[i].nodeId}->${steps[i + 1].nodeId}`)
-    return set
-  }, [steps])
+    const set = new Set<string>();
+    for (let i = 0; i < steps.length - 1; i++)
+      set.add(`${steps[i].nodeId}->${steps[i + 1].nodeId}`);
+    return set;
+  }, [steps]);
 
   const painted: Edge[] = useMemo(
     () =>
       edges.map((e) => {
-        const hot = traversed.has(`${e.source}->${e.target}`)
-        return { ...e, animated: hot, className: hot ? 'traversed' : undefined }
+        const hot = traversed.has(`${e.source}->${e.target}`);
+        return {
+          ...e,
+          animated: hot,
+          className: hot ? "traversed" : undefined,
+        };
       }),
     [edges, traversed],
-  )
+  );
 
   return (
     <ReactFlow
@@ -50,9 +69,11 @@ export function Canvas() {
         zoomable
         className="!rounded-lg !border !border-line !bg-ink-800"
         maskColor="rgba(11,14,20,0.78)"
-        nodeColor={(n) => TYPE_COLOR[(n.data as { type: string }).type] ?? '#94a3b8'}
+        nodeColor={(n) =>
+          TYPE_COLOR[(n.data as { type: string }).type] ?? "#94a3b8"
+        }
         nodeStrokeWidth={0}
       />
     </ReactFlow>
-  )
+  );
 }
