@@ -1,4 +1,4 @@
-import { createStore, del, set, values } from "idb-keyval";
+import { clear, createStore, del, set, values } from "idb-keyval";
 import type {
   RunResult,
   State,
@@ -38,6 +38,7 @@ export const saveVersion = (doc: LoomDoc): LoomDoc[] => {
 
 export type RunRecord = {
   id: string;
+  graphId: string;
   graphName: string;
   graphVersion: number;
   startedAt: number;
@@ -48,6 +49,7 @@ export type RunRecord = {
 
 export const saveRun = (record: RunRecord) => set(record.id, record, runStore);
 export const deleteRun = (id: string) => del(id, runStore);
+export const clearRuns = () => clear(runStore);
 export const loadRuns = async (): Promise<RunRecord[]> => {
   const all = (await values(runStore)) as RunRecord[];
   return all.sort((a, b) => b.startedAt - a.startedAt);

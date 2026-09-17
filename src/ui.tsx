@@ -262,3 +262,58 @@ export function WhenSeen({
     </div>
   );
 }
+
+/**
+ * A yes/no on a native dialog, so Escape, focus trapping and the backdrop are the
+ * platform's job. Never window.confirm: it blocks the whole tab, it cannot be styled,
+ * and it reads as a browser warning rather than as part of the app.
+ */
+export function ConfirmDialog({
+  open,
+  title,
+  body,
+  confirmLabel,
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean;
+  title: string;
+  body: string;
+  confirmLabel: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const ref = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    if (open && !node.open) node.showModal();
+    if (!open && node.open) node.close();
+  }, [open]);
+
+  return (
+    <dialog
+      ref={ref}
+      onClose={onCancel}
+      onClick={(e) => {
+        if (e.target === ref.current) onCancel();
+      }}
+      className="m-auto w-[min(26rem,calc(100vw-2rem))] rounded-xl border border-line bg-panel p-5 text-text backdrop:bg-black/55"
+    >
+      <h2 className="m-0 text-title font-medium">{title}</h2>
+      <p className="mt-2 mb-5 text-ui text-text-dim">{body}</p>
+      <div className="flex justify-end gap-2">
+        <button className={button} onClick={onCancel}>
+          Cancel
+        </button>
+        <button
+          className={`${button} border-halt/40 bg-halt/10 text-halt hover:bg-halt/20`}
+          onClick={onConfirm}
+        >
+          {confirmLabel}
+        </button>
+      </div>
+    </dialog>
+  );
+}

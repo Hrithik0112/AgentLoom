@@ -1,6 +1,7 @@
 import { StrictMode, Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import Landing from "./landing/Landing.tsx";
+import { bootSettings } from "./lib/settings.ts";
 import { bootTheme } from "./lib/theme.ts";
 import { usePath } from "./router.tsx";
 import "./index.css";
@@ -9,6 +10,7 @@ import "./index.css";
 const App = lazy(() => import("./App.tsx"));
 
 bootTheme();
+bootSettings();
 
 function Routes() {
   const path = usePath();

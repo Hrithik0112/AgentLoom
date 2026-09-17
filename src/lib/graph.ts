@@ -127,6 +127,8 @@ export function toGraph(
 }
 
 export type LoomDoc = {
+  /** Stable per document, so run history follows a workflow across renames. */
+  id?: string;
   name: string;
   version: number;
   nodes: LoomNode[];

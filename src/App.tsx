@@ -1,8 +1,10 @@
 import {
   Download,
+  FilePlus2,
   KeyRound,
   PanelLeftClose,
   PanelLeftOpen,
+  Settings,
   Upload,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -15,13 +17,14 @@ import { EXAMPLES } from "./examples.ts";
 import { NODE_TYPES, type LoomDoc } from "./lib/graph.ts";
 import { download } from "./lib/persist.ts";
 import { Link } from "./router.tsx";
+import { SettingsDialog } from "./SettingsDialog.tsx";
+import { readSettings } from "./lib/settings.ts";
 import { useStore, type Mode, type RunStatus } from "./store.ts";
 import {
-  control,
+  ConfirmDialog,
   DragHandle,
-  quietButton,
   Mark,
-  ThemeToggle,
+  quietButton,
   useResizablePanel,
 } from "./ui.tsx";
 
@@ -71,6 +74,7 @@ export default function App() {
     apiKey,
     setApiKey,
     loadDocument,
+    newWorkflow,
     setInput,
     refreshRuns,
     status,
@@ -79,7 +83,8 @@ export default function App() {
 
   const fileInput = useRef<HTMLInputElement>(null);
   const [railOpen, setRailOpen] = useState(true);
-  const [keyOpen, setKeyOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [confirmNew, setConfirmNew] = useState(false);
   const panel = useResizablePanel("agentloom.panelWidth", 400, 320, 760);
 
   useEffect(() => {
@@ -149,6 +154,15 @@ export default function App() {
 
           <button
             className={`${quietButton} inline-flex items-center gap-1.5`}
+            onClick={() =>
+              nodes.length > 2 ? setConfirmNew(true) : newWorkflow()
+            }
+          >
+            <FilePlus2 size={13} aria-hidden />
+            New
+          </button>
+          <button
+            className={`${quietButton} inline-flex items-center gap-1.5`}
             onClick={() => fileInput.current?.click()}
           >
             <Upload size={13} aria-hidden />
@@ -160,6 +174,7 @@ export default function App() {
               download(`${name.replace(/\s+/g, "-").toLowerCase()}.json`, {
                 name,
                 version: 1,
+                author: readSettings().name || undefined,
                 nodes,
                 edges,
               })
@@ -192,8 +207,8 @@ export default function App() {
           )}
 
           <button
-            onClick={() => setKeyOpen((v) => !v)}
-            aria-expanded={keyOpen}
+            onClick={() => setSettingsOpen(true)}
+            title="Set the model this runs against"
             className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-meta transition-colors ${
               apiKey
                 ? "border-line bg-raised text-text-dim hover:text-text"
@@ -204,27 +219,33 @@ export default function App() {
             {apiKey ? "Live model" : "Demo model"}
           </button>
 
-          <ThemeToggle />
+          <button
+            onClick={() => setSettingsOpen(true)}
+            aria-label="Preferences"
+            title="Preferences"
+            className="rounded-md border border-line bg-raised p-1.5 text-text-dim transition-colors hover:border-line-strong hover:text-text"
+          >
+            <Settings size={14} aria-hidden />
+          </button>
         </div>
       </header>
 
-      {keyOpen && (
-        <div className="flex shrink-0 items-center gap-3 border-b border-line bg-panel px-4 py-3">
-          <input
-            type="password"
-            aria-label="Anthropic API key"
-            placeholder="sk-ant-…"
-            className={`${control} max-w-md font-mono`}
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-          />
-          <p className="max-w-lg text-meta text-text-dim">
-            Stored in this browser and sent only to api.anthropic.com. Leave it
-            empty to run against canned responses instead, which is enough to
-            exercise every branch in the examples.
-          </p>
-        </div>
-      )}
+      <SettingsDialog
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      />
+
+      <ConfirmDialog
+        open={confirmNew}
+        title="Start a new workflow?"
+        body={`"${name}" is replaced on this canvas. Export it first if you want to keep it.`}
+        confirmLabel="Replace it"
+        onConfirm={() => {
+          setConfirmNew(false);
+          newWorkflow();
+        }}
+        onCancel={() => setConfirmNew(false)}
+      />
 
       <main className="flex min-h-0 flex-1">
         {mode === "build" && (
