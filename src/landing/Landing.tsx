@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { AnnotatedText } from "@/components/ui/annotated-text";
 import { SplitFlapDisplay } from "@/components/ui/split-flap-display";
 import {
   Blocks,
@@ -116,7 +117,16 @@ export default function Landing() {
       <main className="mx-auto max-w-6xl px-6">
         <section className="pt-16 pb-12">
           <h1 className="m-0 max-w-3xl text-h1 font-semibold tracking-[-0.025em] text-text">
-            Your agent answered wrong at step 12. Which of the other eleven
+            Your agent answered wrong at step 12. Which of{" "}
+            <AnnotatedText
+              variant="underline"
+              color="text-halt"
+              delay={0.35}
+              duration={0.9}
+              className="whitespace-nowrap"
+            >
+              the other eleven
+            </AnnotatedText>{" "}
             broke it?
           </h1>
           <p className="mt-6 max-w-[58ch] text-lede text-text-dim">

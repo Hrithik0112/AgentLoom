@@ -117,6 +117,9 @@ const H = 40;
 const VIEW_W = 708;
 const VIEW_H = 262;
 
+/** Lets the headline annotation finish drawing before the run starts moving. */
+const START_DELAY = 950;
+
 const TYPE_COLOR: Record<string, string> = {
   input: "var(--c-type-input)",
   llm: "var(--c-type-llm)",
@@ -193,7 +196,7 @@ export function LiveRun() {
             () => {
               if (!cancelled) setSteps(collected.slice(0, i + 1));
             },
-            260 + i * 900,
+            START_DELAY + i * 900,
           ),
         );
       });
@@ -202,7 +205,7 @@ export function LiveRun() {
           () => {
             if (!cancelled) setPass((p) => p + 1);
           },
-          260 + collected.length * 900 + 2600,
+          START_DELAY + collected.length * 900 + 2600,
         ),
       );
     };
